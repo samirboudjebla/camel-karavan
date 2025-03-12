@@ -29,7 +29,6 @@ import org.apache.camel.karavan.KaravanConstants;
 import org.apache.camel.karavan.docker.DockerComposeConverter;
 import org.apache.camel.karavan.docker.DockerService;
 import org.apache.camel.karavan.kubernetes.KubernetesService;
-import org.apache.camel.karavan.model.ContainerType;
 import org.apache.camel.karavan.model.DockerComposeService;
 import org.apache.camel.karavan.model.PodContainerStatus;
 import org.apache.camel.karavan.service.ConfigService;
@@ -70,7 +69,7 @@ public class ContainerResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<PodContainerStatus> getAllContainerStatuses() throws Exception {
         return karavanCache.getPodContainerStatuses().stream()
-                .sorted(Comparator.comparing(PodContainerStatus::getProjectId, Comparator.nullsLast(String::compareTo)))
+                .sorted(Comparator.comparing(PodContainerStatus::getProjectId))
                 .collect(Collectors.toList());
     }
 
@@ -113,28 +112,29 @@ public class ContainerResource {
         }
     }
 
-    public void deployContainer(String projectId, String type, JsonObject command) throws InterruptedException {
-        if (Objects.equals(type, ContainerType.devservice.name())) {
-            String code = projectService.getDockerDevServiceCode();
+    private void deployContainer(String projectId, String type, JsonObject command) throws InterruptedException {
+        if (Objects.equals(type, PodContainerStatus.ContainerType.devservice.name())) {
+            String code = projectService.getDevServiceCode();
             DockerComposeService dockerComposeService = DockerComposeConverter.fromCode(code, projectId);
             if (dockerComposeService != null) {
                 Map<String, String> labels = new HashMap<>();
-                labels.put(LABEL_TYPE, ContainerType.devservice.name());
-                labels.put(LABEL_PROJECT_ID, projectId);
-                dockerService.createContainerFromCompose(dockerComposeService, labels, needPull(command));
-                dockerService.runContainer(dockerComposeService.getContainer_name());
-            }
-        } else if (Objects.equals(type, ContainerType.project.name())) {
-            DockerComposeService dockerComposeService = projectService.getProjectDockerComposeService(projectId);
-            if (dockerComposeService != null) {
-                Map<String, String> labels = new HashMap<>();
-                labels.put(LABEL_TYPE, ContainerType.project.name());
+                labels.put(LABEL_TYPE, PodContainerStatus.ContainerType.devservice.name());
                 labels.put(LABEL_CAMEL_RUNTIME, CamelRuntime.CAMEL_MAIN.getValue());
                 labels.put(LABEL_PROJECT_ID, projectId);
                 dockerService.createContainerFromCompose(dockerComposeService, labels, needPull(command));
                 dockerService.runContainer(dockerComposeService.getContainer_name());
             }
-        } else if (Objects.equals(type, ContainerType.devmode.name())) {
+        } else if (Objects.equals(type, PodContainerStatus.ContainerType.project.name())) {
+            DockerComposeService dockerComposeService = projectService.getProjectDockerComposeService(projectId);
+            if (dockerComposeService != null) {
+                Map<String, String> labels = new HashMap<>();
+                labels.put(LABEL_TYPE, PodContainerStatus.ContainerType.project.name());
+                labels.put(LABEL_CAMEL_RUNTIME, CamelRuntime.CAMEL_MAIN.getValue());
+                labels.put(LABEL_PROJECT_ID, projectId);
+                dockerService.createContainerFromCompose(dockerComposeService, labels, needPull(command));
+                dockerService.runContainer(dockerComposeService.getContainer_name());
+            }
+        } else if (Objects.equals(type, PodContainerStatus.ContainerType.devmode.name())) {
 //                        TODO: merge with DevMode service
 //                        dockerForKaravan.createDevmodeContainer(name, "");
 //                        dockerService.runContainer(name);
@@ -151,7 +151,7 @@ public class ContainerResource {
     private void setContainerStatusTransit(String projectId, String name, String type) {
         PodContainerStatus status = karavanCache.getPodContainerStatus(projectId, environment, name);
         if (status == null) {
-            status = PodContainerStatus.createByType(projectId, environment, ContainerType.valueOf(type));
+            status = PodContainerStatus.createByType(projectId, environment, PodContainerStatus.ContainerType.valueOf(type));
         }
         status.setInTransit(true);
         eventBus.publish(POD_CONTAINER_UPDATED, JsonObject.mapFrom(status));

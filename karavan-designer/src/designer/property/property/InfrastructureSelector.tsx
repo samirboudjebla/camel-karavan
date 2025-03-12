@@ -16,10 +16,13 @@
  */
 import React, {useState} from 'react';
 import {
-    Badge, Button, capitalize, Flex, FlexItem, Modal, Text, TextContent, TextInput, ToggleGroup, ToggleGroupItem,
+    Badge,
+    Button, capitalize, Flex, FlexItem,
+    Form, FormGroup, Modal, PageSection,
+    Tab, Tabs, TabTitleText, TextInput,
 } from '@patternfly/react-core';
 import '../../karavan.css';
-import {InnerScrollContainer, OuterScrollContainer, Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import {Table /* data-codemods */, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {InfrastructureAPI} from "../../utils/InfrastructureAPI";
 
 interface Props {
@@ -35,7 +38,7 @@ export function InfrastructureSelector(props: Props) {
     const [tabIndex, setTabIndex] = useState<string | number>(tabs[0]);
     const [filter, setFilter] = useState<string>();
 
-    function checkFilter(name: string): boolean {
+    function checkFilter  (name: string): boolean {
         if (filter !== undefined && name) {
             return name.toLowerCase().includes(filter.toLowerCase())
         } else {
@@ -43,97 +46,93 @@ export function InfrastructureSelector(props: Props) {
         }
     }
 
-    function searchInput() {
+    function searchInput () {
         return (
-            <TextInput className="text-field" type="text" id="search" name="search" autoComplete="off"
-                       value={filter}
-                       onChange={(_, value) => setFilter(value)}/>
+            <Form isHorizontal className="search" autoComplete="off">
+                <FormGroup fieldId="search">
+                    <TextInput className="text-field" type="text" id="search" name="search"
+                               value={filter}
+                               onChange={(_, value) => setFilter(value)}/>
+                </FormGroup>
+            </Form>
         )
     }
 
     function getConfigMapTable() {
         const configMaps = InfrastructureAPI.configMaps;
         return (
-            <OuterScrollContainer>
-                <InnerScrollContainer>
-                    <Table variant='compact' borders={false} isStickyHeader>
-                        <Thead>
-                            <Tr>
-                                <Th/>
-                                <Th key='name'>Name</Th>
-                                <Th key='data'>Data</Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            {configMaps
-                                .filter(name => checkFilter(name))
-                                .map((name, idx: number) => {
-                                    const configMapName = name.split("/")[0];
-                                    const data = name.split("/")[1];
-                                    return (
-                                        <Tr key={name}>
-                                            <Td noPadding isActionCell>
-                                                <Badge>CM</Badge>
-                                            </Td>
-                                            <Td noPadding>
-                                                {configMapName}
-                                            </Td>
-                                            <Td noPadding>
-                                                <Button style={{padding: '6px'}} variant={"link"} onClick={
-                                                    e => props.onSelect?.("configmap:" + name)}>
-                                                    {data}
-                                                </Button>
-                                            </Td>
-                                        </Tr>
-                                    )
-                                })}
-                        </Tbody>
-                    </Table>
-                </InnerScrollContainer>
-            </OuterScrollContainer>
+            <Table variant='compact' borders={false}>
+                <Thead>
+                    <Tr>
+                        <Th/>
+                        <Th key='name'>Name</Th>
+                        <Th key='data'>Data</Th>
+                    </Tr>
+                </Thead>
+                <Tbody>
+                    {configMaps
+                        .filter(name => checkFilter(name))
+                        .map((name, idx: number) => {
+                            const configMapName = name.split("/")[0];
+                            const data = name.split("/")[1];
+                            return (
+                                <Tr key={name}>
+                                    <Td noPadding isActionCell>
+                                        <Badge>CM</Badge>
+                                    </Td>
+                                    <Td noPadding>
+                                        {configMapName}
+                                    </Td>
+                                    <Td noPadding>
+                                        <Button style={{padding: '6px'}} variant={"link"} onClick={
+                                            e => props.onSelect?.("configmap:" + name)}>
+                                            {data}
+                                        </Button>
+                                    </Td>
+                                </Tr>
+                            )
+                        })}
+                </Tbody>
+            </Table>
         )
     }
 
     function getSecretsTable() {
         const secrets = InfrastructureAPI.secrets;
         return (
-            <OuterScrollContainer>
-                <InnerScrollContainer>
-                    <Table variant='compact' borders={false}>
-                        <Thead>
-                            <Tr>
-                                <Th/>
-                                <Th key='name'>Name</Th>
-                                <Th key='data'>Data</Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            {secrets
-                                .filter(name => checkFilter(name))
-                                .map((name, idx: number) => {
-                                    const configMapName = name.split("/")[0];
-                                    const data = name.split("/")[1];
-                                    return (
-                                        <Tr key={name}>
-                                            <Td noPadding isActionCell>
-                                                <Badge>S</Badge>
-                                            </Td>
-                                            <Td noPadding>
-                                                {configMapName}
-                                            </Td>
-                                            <Td noPadding>
-                                                <Button style={{padding: '6px'}} variant={"link"} onClick={
-                                                    e => props.onSelect?.("secret:" + name)}>
-                                                    {data}
-                                                </Button>
-                                            </Td>
-                                        </Tr>
-                                    )
-                                })}
-                        </Tbody>
-                    </Table>
-                </InnerScrollContainer>
-            </OuterScrollContainer>
+            <Table variant='compact' borders={false}>
+                <Thead>
+                    <Tr>
+                        <Th/>
+                        <Th key='name'>Name</Th>
+                        <Th key='data'>Data</Th>
+                    </Tr>
+                </Thead>
+                <Tbody>
+                    {secrets
+                        .filter(name => checkFilter(name))
+                        .map((name, idx: number) => {
+                            const configMapName = name.split("/")[0];
+                            const data = name.split("/")[1];
+                            return (
+                                <Tr key={name}>
+                                    <Td noPadding isActionCell>
+                                        <Badge>S</Badge>
+                                    </Td>
+                                    <Td noPadding>
+                                        {configMapName}
+                                    </Td>
+                                    <Td noPadding>
+                                        <Button style={{padding: '6px'}} variant={"link"} onClick={
+                                            e => props.onSelect?.("secret:" + name)}>
+                                            {data}
+                                        </Button>
+                                    </Td>
+                                </Tr>
+                            )
+                        })}
+                </Tbody>
+            </Table>
         )
     }
 
@@ -201,30 +200,25 @@ export function InfrastructureSelector(props: Props) {
             isOpen={props.isOpen}
             onClose={props.onClose}
             header={
-                <Flex direction={{default: "row"}} justifyContent={{default: "justifyContentSpaceBetween"}} style={{width: '90%'}}>
-                    <FlexItem flex={{default: 'flex_2'}}>
-                        <TextContent>
-                            <Text component={'h3'}>{'Select from ' + capitalize(InfrastructureAPI.infrastructure)}</Text>
-                        </TextContent>
-                    </FlexItem>
+                <Flex direction={{default: "column"}}>
                     <FlexItem>
-                        <ToggleGroup>
-                            {tabs.map(tab =>
-                                <ToggleGroupItem buttonId={tab} key={tab} text={capitalize(tab)} isSelected={tab === tabIndex} onClick={() => setTabIndex(tab)}/>
-                            )}
-                        </ToggleGroup>
-                    </FlexItem>
-                    <FlexItem>
+                        <h3>{"Select from " + capitalize(InfrastructureAPI.infrastructure)}</h3>
                         {searchInput()}
+                    </FlexItem>
+                    <FlexItem>
+                        <Tabs style={{overflow: 'hidden'}} activeKey={tabIndex} onSelect={(_, eventKey) => setTabIndex(eventKey)}>
+                            {tabs.map(tab => <Tab eventKey={tab} key={tab} title={<TabTitleText>{capitalize(tab)}</TabTitleText>} />)}
+                        </Tabs>
                     </FlexItem>
                 </Flex>
             }
             actions={{}}>
-            <React.Fragment>
+            <PageSection variant={props.dark ? "darker" : "light"}>
+                {searchInput()}
                 {tabIndex === 'configMap' && getConfigMapTable()}
                 {tabIndex === 'secret' && getSecretsTable()}
                 {tabIndex === 'services' && getServicesTable()}
-            </React.Fragment>
+            </PageSection>
         </Modal>
     )
 }

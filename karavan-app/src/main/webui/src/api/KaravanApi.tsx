@@ -32,7 +32,7 @@ import {EventBus} from "../designer/utils/EventBus";
 import {ErrorEventBus} from "./ErrorEventBus";
 
 const USER_ID_KEY = 'KARAVAN_USER_ID';
-axios.defaults.timeout = 30000;
+axios.defaults.timeout = 5000;
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 const instance = axios.create();
@@ -208,6 +208,30 @@ export class KaravanApi {
         });
     }
 
+    static async getProjectDeploymentStatus(projectId: string, env: string, after: (status?: DeploymentStatus) => void) {
+        instance.get('/ui/status/deployment/' + projectId + "/" + env)
+            .then(res => {
+                if (res.status === 200) {
+                    after(res.data);
+                } else if (res.status === 204) {
+                    after(undefined);
+                }
+            }).catch(err => {
+            ErrorEventBus.sendApiError(err);
+        });
+    }
+
+    static async getProjectCamelStatus(projectId: string, env: string, after: (status: CamelStatus) => void) {
+        instance.get('/ui/status/camel/' + projectId + "/" + env)
+            .then(res => {
+                if (res.status === 200) {
+                    after(res.data);
+                }
+            }).catch(err => {
+            ErrorEventBus.sendApiError(err);
+        });
+    }
+
     static async getAllCamelContextStatuses(after: (statuses: CamelStatus[]) => void) {
         instance.get('/ui/status/camel/context')
             .then(res => {
@@ -366,15 +390,6 @@ export class KaravanApi {
         });
     }
 
-    static async copyProjectFile(fromProjectId: string, fromFilename: string, toProjectId: string, toFilename: string, overwrite: boolean, after: (res: AxiosResponse<any>) => void) {
-        instance.post('/ui/file/copy', {fromProjectId: fromProjectId, fromFilename: fromFilename, toProjectId: toProjectId, toFilename: toFilename, overwrite: overwrite})
-            .then(res => {
-                after(res);
-            }).catch(err => {
-            after(err);
-        });
-    }
-
     static async push(params: {}, after: (res: AxiosResponse<any>) => void) {
         instance.post('/ui/git', params)
             .then(res => {
@@ -463,8 +478,8 @@ export class KaravanApi {
         });
     }
 
-    static async startDevModeContainer(project: Project, verbose: boolean, compile: boolean, after: (res: AxiosResponse<any>) => void) {
-        instance.post(`/ui/devmode/${verbose.toString()}/${compile.toString()}`, project)
+    static async startDevModeContainer(project: Project, verbose: boolean, after: (res: AxiosResponse<any>) => void) {
+        instance.post('/ui/devmode' + (verbose ? '/--verbose' : ''), project)
             .then(res => {
                 after(res);
             }).catch(err => {
@@ -704,7 +719,7 @@ export class KaravanApi {
     }
 
     static async getKamelets(after: (yaml: string) => void) {
-        instance.get('/ui/metadata/kamelets', {headers: {'Accept': 'text/plain'}, timeout: 0})
+        instance.get('/ui/metadata/kamelets', {headers: {'Accept': 'text/plain'}})
             .then(res => {
                 if (res.status === 200) {
                     after(res.data);
@@ -715,7 +730,7 @@ export class KaravanApi {
     }
 
     static async getKameletsForProject(projectId: string, after: (yaml: string) => void) {
-        instance.get('/ui/metadata/kamelets/' + projectId, {headers: {'Accept': 'text/plain'}, timeout: 0})
+        instance.get('/ui/metadata/kamelets/' + projectId, {headers: {'Accept': 'text/plain'}})
             .then(res => {
                 if (res.status === 200) {
                     after(res.data);
@@ -726,7 +741,7 @@ export class KaravanApi {
     }
 
     static async getComponents(after: (json: string) => void) {
-        instance.get('/ui/metadata/components', {timeout: 0})
+        instance.get('/ui/metadata/components')
             .then(res => {
                 if (res.status === 200) {
                     after(JSON.stringify(res.data));
@@ -737,7 +752,7 @@ export class KaravanApi {
     }
 
     static async getBeans(after: (json: string) => void) {
-        instance.get('/ui/metadata/beans', {timeout: 0})
+        instance.get('/ui/metadata/beans')
             .then(res => {
                 if (res.status === 200) {
                     after(JSON.stringify(res.data));
@@ -748,7 +763,7 @@ export class KaravanApi {
     }
 
     static async getMainConfiguration(after: (json: string) => void) {
-        instance.get('/ui/metadata/mainConfiguration', {timeout: 0})
+        instance.get('/ui/metadata/mainConfiguration')
             .then(res => {
                 if (res.status === 200) {
                     after(JSON.stringify(res.data));

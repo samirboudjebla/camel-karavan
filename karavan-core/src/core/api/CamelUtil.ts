@@ -20,7 +20,7 @@ import {
     KameletDefinition,
     BeanFactoryDefinition,
     RouteConfigurationDefinition,
-    ToDefinition, RouteTemplateDefinition,
+    ToDefinition,
 } from '../model/CamelDefinition';
 import { KameletApi } from './KameletApi';
 import { KameletModel, Property } from '../model/KameletModels';
@@ -55,11 +55,6 @@ export class CamelUtil {
             flows.push(newRouteConfiguration);
         }
 
-        for (const routeTemplate of int.spec.flows?.filter(flow => flow.dslName === 'RouteTemplateConfiguration') || []) {
-            const newRouteTemplate = CamelUtil.cloneRouteTemplate(routeTemplate);
-            flows.push(newRouteTemplate);
-        }
-
         int.spec.flows = flows;
         return int;
     };
@@ -90,14 +85,6 @@ export class CamelUtil {
         const clone = JSON.parse(JSON.stringify(routeConfiguration));
         const RouteConfiguration = new RouteConfigurationDefinition(clone);
         RouteConfiguration.uuid = routeConfiguration.uuid;
-        return RouteConfiguration;
-    };
-    static cloneRouteTemplate = (
-        routeTemplate: RouteTemplateDefinition,
-    ): RouteTemplateDefinition => {
-        const clone = JSON.parse(JSON.stringify(routeTemplate));
-        const RouteConfiguration = new RouteTemplateDefinition(clone);
-        RouteConfiguration.uuid = routeTemplate.uuid;
         return RouteConfiguration;
     };
 
@@ -152,7 +139,7 @@ export class CamelUtil {
     static isKameletComponent = (element: CamelElement | undefined): boolean => {
         if (element?.dslName === 'KameletDefinition') {
             return true;
-        } else if (element?.dslName === 'FromDefinition' || element?.dslName === 'ToDefinition' || element?.dslName === 'ToDynamicDefinition') {
+        } else if (element?.dslName === 'FromDefinition' || element?.dslName === 'ToDefinition') {
             const uri: string = (element as any).uri;
             return uri !== undefined && uri.startsWith('kamelet:');
         } else {
@@ -166,7 +153,7 @@ export class CamelUtil {
         } else if (element.dslName === 'ToDefinition' && (element as ToDefinition).uri?.startsWith('kamelet:')) {
             const kameletName = (element as ToDefinition).uri?.replace('kamelet:', '');
             return KameletApi.findKameletByName(kameletName);
-        } else if (['FromDefinition', 'ToDynamicDefinition', 'ToDefinition'].includes(element.dslName)) {
+        } else if (['FromDefinition', 'FromDefinition', 'ToDefinition'].includes(element.dslName)) {
             const uri: string = (element as any).uri;
             return uri !== undefined ? KameletApi.findKameletByUri(uri) : undefined;
         } else {
@@ -195,12 +182,21 @@ export class CamelUtil {
         const uri: string = (element as any).uri;
         const name = ComponentApi.getComponentNameFromUri(uri);
 
-        if (name) {
-            const component = ComponentApi.findByName(name);
-            const type: 'consumer' | 'producer' = ['FromDefinition', 'PollDefinition'].includes(element.dslName) ? 'consumer' : 'producer'
-            return component ? ComponentApi.getComponentProperties(component?.component.name, type) : [];
+        if (dslName === 'ToDynamicDefinition') {
+            const component = ComponentApi.findByName(dslName);
+            return component ? ComponentApi.getComponentProperties(component?.component.name, 'producer') : [];
         } else {
-            return [];
+            if (name) {
+                const component = ComponentApi.findByName(name);
+                return component
+                    ? ComponentApi.getComponentProperties(
+                        component?.component.name,
+                        element.dslName === 'FromDefinition' ? 'consumer' : 'producer',
+                    )
+                    : [];
+            } else {
+                return [];
+            }
         }
     };
 
@@ -216,7 +212,7 @@ export class CamelUtil {
         if (elementMeta) {
             for (const property of elementMeta.properties.filter(p => p.required)) {
                 const value = (element as any)[property.name];
-                if (property.type === 'string' && !property.isArray && (value === undefined || !value.toString().trim())) {
+                if (property.type === 'string' && !property.isArray && (value === undefined || !value.trim())) {
                     result[0] = false;
                     result[1].push(`${property.displayName} is required`);
                 } else if (['ExpressionSubElementDefinition', 'ExpressionDefinition'].includes(property.type)) {
@@ -242,7 +238,7 @@ export class CamelUtil {
                 const requiredProperties = CamelUtil.getComponentProperties(element).filter(p => p.required);
                 for (const property of requiredProperties) {
                     const value = CamelDefinitionApiExt.getParametersValue(element, property.name, property.kind === 'path');
-                    if (value === undefined || (property.type === 'string' && value.toString().trim().length === 0)) {
+                    if (value === undefined || (property.type === 'string' && value.trim().length === 0)) {
                         result[0] = false;
                         result[1].push(`${property.displayName} is required`);
                     }
@@ -251,7 +247,7 @@ export class CamelUtil {
                 for (const property of secretProperties) {
                     const value = CamelDefinitionApiExt.getParametersValue(element, property.name, property.kind === 'path');
                     if (value !== undefined && property.type === 'string'
-                        && (!value?.toString().trim()?.startsWith("{{") || !value?.toString().trim()?.endsWith('}}'))) {
+                        && (!value?.trim()?.startsWith("{{") || !value?.trim()?.endsWith('}}'))) {
                         result[0] = false;
                         result[1].push(`${property.displayName} is set in plain text`);
                     }
@@ -270,7 +266,7 @@ export class CamelUtil {
                 const sensitiveParameters = filledParameters.filter(p => CamelUtil.checkIfKameletParameterSensitive(p, kamelet));
                 sensitiveParameters.forEach(p => {
                     const value = elementAsAny?.parameters[p];
-                    if (value !== undefined && (!value?.toString()?.trim()?.startsWith("{{") || !value?.toString()?.trim()?.endsWith('}}'))) {
+                    if (value !== undefined && (!value?.trim()?.startsWith("{{") || !value?.trim()?.endsWith('}}'))) {
                         result[0] = false;
                         result[1].push(`${p} is set in plain text`);
                     }

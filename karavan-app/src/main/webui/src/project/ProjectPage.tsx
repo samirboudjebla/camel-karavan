@@ -66,10 +66,11 @@ export function ProjectPage() {
 
     function refreshData(){
         ProjectService.refreshAllContainerStatuses();
-        ProjectService.refreshCamelStatus(project.projectId, config.environment);
         if (tabIndex === 'build' || tabIndex === 'container') {
             ProjectService.refreshAllDeploymentStatuses();
             ProjectService.refreshImages(project.projectId);
+        } else if (tabIndex === 'dashboard') {
+            ProjectService.refreshCamelStatus(project.projectId, config.environment);
         } else if (tabIndex === 'trace' && refreshTrace) {
             ProjectService.refreshCamelTraces(project.projectId, config.environment);
         }
@@ -106,6 +107,7 @@ export function ProjectPage() {
                             }}>
                                 {<Tab eventKey="topology" title="Topology"/>}
                                 <Tab eventKey="files" title="Files"/>
+                                {<Tab eventKey="dashboard" title="Dashboard"/>}
                                 {<Tab eventKey="trace" title="Trace"/>}
                                 {showBuildTab && <Tab eventKey="build" title="Build"/>}
                                 <Tab eventKey="container" title={containerTabName}/>

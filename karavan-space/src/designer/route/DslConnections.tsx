@@ -33,7 +33,6 @@ import {INTERNAL_COMPONENTS} from "karavan-core/lib/api/ComponentApi";
 const overlapGap: number = 40;
 const DIAMETER: number = 34;
 const RADIUS: number = DIAMETER / 2;
-type ConnectionType =  'internal' | 'remote' | 'nav' | 'poll' | 'dynamic';
 
 export function DslConnections() {
 
@@ -84,12 +83,10 @@ export function DslConnections() {
         }
     }
 
-    function getElementType(element: CamelElement): ConnectionType {
+    function getElementType(element: CamelElement): 'internal' | 'remote' | 'nav' | 'poll' {
         const uri = (element as any).uri;
         if (element.dslName === 'PollDefinition') {
             return 'poll';
-        } else if (element.dslName === 'ToDynamicDefinition') {
-            return 'dynamic';
         } else if (INTERNAL_COMPONENTS.includes((uri))) {
             return 'nav';
         } else {
@@ -98,8 +95,8 @@ export function DslConnections() {
         }
     }
 
-    function getIncomings(): [string, number, ConnectionType][] {
-        let outs: [string, number, ConnectionType][] = Array.from(steps.values())
+    function getIncomings(): [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] {
+        let outs: [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] = Array.from(steps.values())
             .filter(pos => ["FromDefinition"].includes(pos.step.dslName))
             .filter(pos => !(pos.step.dslName === 'FromDefinition' && (pos.step as any).uri === 'kamelet:source'))
             .sort((pos1: DslPosition, pos2: DslPosition) => {
@@ -114,7 +111,7 @@ export function DslConnections() {
         return outs;
     }
 
-    function getIncoming(data: [string, number, ConnectionType]) {
+    function getIncoming(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll']) {
         const pos = steps.get(data[0]);
         if (pos) {
             const fromX = pos.headerRect.x + pos.headerRect.width / 2 - left;
@@ -147,7 +144,7 @@ export function DslConnections() {
     //         .filter(s =>  (s.step as any)?.parameters?.name === name)
     // }
 
-    function getIncomingIcons(data: [string, number, ConnectionType]) {
+    function getIncomingIcons(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll']) {
         const pos = steps.get(data[0]);
         if (pos) {
             const step = (pos.step as any);
@@ -189,7 +186,7 @@ export function DslConnections() {
         }
     }
 
-    function hasOverlap(data: [string, number, ConnectionType][]): boolean {
+    function hasOverlap(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll'][]): boolean {
         let result = false;
         data.forEach((d, i, arr) => {
             if (i > 0 && d[1] - arr[i - 1][1] < overlapGap) result = true;
@@ -197,8 +194,8 @@ export function DslConnections() {
         return result;
     }
 
-    function addGap(data: [string, number, ConnectionType][]): [string, number, ConnectionType][] {
-        const result: [string, number, ConnectionType][] = [];
+    function addGap(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll'][]): [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] {
+        const result: [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] = [];
         data.forEach((d, i, arr) => {
             if (i > 0 && d[1] - arr[i - 1][1] < overlapGap) result.push([d[0], d[1] + overlapGap, d[2]])
             else result.push(d);
@@ -207,12 +204,12 @@ export function DslConnections() {
     }
 
 
-    function getOutgoings(): [string, number, ConnectionType][] {
+    function getOutgoings(): [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] {
         const outgoingDefinitions = TopologyUtils.getOutgoingDefinitions();
-        let outs: [string, number, ConnectionType][] = Array.from(steps.values())
+        let outs: [string, number, 'internal' | 'remote' | 'nav' | 'poll'][] = Array.from(steps.values())
             .filter(pos => outgoingDefinitions.includes(pos.step.dslName))
             .filter(pos => pos.step.dslName !== 'KameletDefinition' || (pos.step.dslName === 'KameletDefinition' && !CamelUi.isActionKamelet(pos.step)))
-            .filter(pos => ['ToDefinition', 'PollDefinition', "ToDynamicDefinition"].includes(pos.step.dslName) && !CamelUi.isActionKamelet(pos.step))
+            .filter(pos => ['ToDefinition', 'PollDefinition'].includes(pos.step.dslName) && !CamelUi.isActionKamelet(pos.step))
             .filter(pos => !CamelUi.isKameletSink(pos.step))
             .sort((pos1: DslPosition, pos2: DslPosition) => {
                 const y1 = pos1.headerRect.y + pos1.headerRect.height / 2;
@@ -226,12 +223,11 @@ export function DslConnections() {
         return outs;
     }
 
-    function getOutgoing(data: [string, number, ConnectionType]) {
+    function getOutgoing(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll']) {
         const pos = steps.get(data[0]);
         const isInternal = data[2] === 'internal';
         const isNav = data[2] === 'nav';
         const isPoll = data[2] === 'poll';
-        const isDynamic = data[2] === 'dynamic';
         if (pos) {
             const fromX = pos.headerRect.x + pos.headerRect.width / 2 - left;
             const fromY = pos.headerRect.y + pos.headerRect.height / 2 - top;
@@ -248,9 +244,7 @@ export function DslConnections() {
             const lineXi = lineX1 + 40;
             const lineYi = lineY2;
 
-            const className = isNav
-                ? 'path-incoming-nav'
-                : (isPoll ? 'path-poll' : (isDynamic ? 'path-dynamic' :'path-incoming'))
+            const className = isNav ? 'path-incoming-nav' : (isPoll ? 'path-poll' : 'path-incoming')
 
             return (!isInternal
                     ? <g key={pos.step.uuid + "-outgoing"}>
@@ -264,7 +258,7 @@ export function DslConnections() {
         }
     }
 
-    function getOutgoingIcons(data: [string, number, ConnectionType]) {
+    function getOutgoingIcons(data: [string, number, 'internal' | 'remote' | 'nav' | 'poll']) {
         const pos = steps.get(data[0]);
         if (pos) {
             const step = (pos.step as any);

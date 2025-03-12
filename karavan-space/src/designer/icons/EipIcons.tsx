@@ -50,14 +50,14 @@ export function AggregateIcon() {
     );
 }
 
-export function ToIcon(classname: string = '') {
+export function ToIcon() {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width={800}
             height={800}
             viewBox="0 0 32 32"
-            className={classname ? "icon " + classname : "icon"}
+            className="icon"
         >
             <path d="m12.103 11.923 2.58 2.59H2.513v2h12.17l-2.58 2.59 1.41 1.41 5-5-5-5z"/>
             <path
@@ -150,26 +150,6 @@ export function FilterIcon() {
         <svg xmlns="http://www.w3.org/2000/svg" id="a" viewBox="0 0 700 700" className="icon" width="32px" height="32px">
             <path
                 d="M565.62 156.56L413.36 350.33a10.032 10.032 0 00-2.14 6.18v190.52c0 19.05-25.01 34.49-55.86 34.49s-55.86-15.44-55.86-34.49V356.51c0-2.24-.75-4.42-2.14-6.18L145.1 156.56c-5.15-6.56-.48-16.18 7.87-16.18h404.79c8.34 0 13.02 9.62 7.86 16.18z"></path>
-        </svg>
-    );
-}
-
-export function SetExchangePatternIcon() {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 32 32"
-            className="icon" width="32px" height="32px">
-            <title>{"data-share"}</title>
-            <path
-                d="M5 25v-9.172l-3.586 3.586L0 18l6-6 6 6-1.414 1.414L7 15.828V25h12v2H7a2.002 2.002 0 0 1-2-2ZM24 22h4a2.002 2.002 0 0 1 2 2v4a2.002 2.002 0 0 1-2 2h-4a2.002 2.002 0 0 1-2-2v-4a2.002 2.002 0 0 1 2-2Zm4 6v-4h-4.002L24 28ZM4.226 1.135h4a2.002 2.002 0 0 1 2 2v4a2.002 2.002 0 0 1-2 2h-4a2.002 2.002 0 0 1-2-2v-4a2.002 2.002 0 0 1 2-2zm4 6v-4H4.225l.001 4zM27 6v9.172l3.586-3.586L32 13l-6 6-6-6 1.414-1.414L25 15.172V6H13V4h12a2.002 2.002 0 0 1 2 2Z"/>
-            <path
-                d="M0 0h32v32H0z"
-                data-name="&lt;Transparent Rectangle&gt;"
-                style={{
-                    fill: "none",
-                }}
-            />
         </svg>
     );
 }

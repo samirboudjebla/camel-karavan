@@ -16,22 +16,19 @@
  */
 import React, {useEffect, useRef, useState} from 'react';
 import {
-    InputGroup,
-    Button,
-    Tooltip,
-    capitalize,
-    Text,
-    TextVariants,
-    InputGroupItem,
-    ValidatedOptions,
-    FormHelperText, HelperText, HelperTextItem, TextInput, FormGroup, Popover, Switch
+    FormGroup,
+    TextInput,
+    Popover,
+    Switch, InputGroup, Button, Tooltip, capitalize, Text, TextVariants, InputGroupItem
 } from '@patternfly/react-core';
 import '../../karavan.css';
 import "@patternfly/patternfly/patternfly.css";
-import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
+import HelpIcon from "@patternfly/react-icons/dist/js/icons/help-icon";
 import {Property} from "karavan-core/lib/model/KameletModels";
 import {InfrastructureSelector} from "./InfrastructureSelector";
 import {InfrastructureAPI} from "../../utils/InfrastructureAPI";
+import ShowIcon from "@patternfly/react-icons/dist/js/icons/eye-icon";
+import HideIcon from "@patternfly/react-icons/dist/js/icons/eye-slash-icon";
 import DockerIcon from "@patternfly/react-icons/dist/js/icons/docker-icon";
 import {usePropertiesHook} from "../usePropertiesHook";
 import {Select, SelectDirection, SelectOption, SelectVariant} from "@patternfly/react-core/deprecated";
@@ -41,8 +38,6 @@ import EditorIcon from "@patternfly/react-icons/dist/js/icons/code-icon";
 import {ExpressionModalEditor} from "../../../expression/ExpressionModalEditor";
 import {useDesignerStore} from "../../DesignerStore";
 import {shallow} from "zustand/shallow";
-import {isSensitiveFieldValid} from "../../utils/ValidatorUtils";
-import HelpIcon from "@patternfly/react-icons/dist/js/icons/help-icon";
 
 interface Props {
     property: Property,
@@ -56,6 +51,7 @@ export function KameletPropertyField(props: Props) {
 
     const [dark] = useDesignerStore((s) => [s.dark], shallow)
     const [showEditor, setShowEditor] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
     const [infrastructureSelector, setInfrastructureSelector] = useState<boolean>(false);
     const [infrastructureSelectorProperty, setInfrastructureSelectorProperty] = useState<string | undefined>(undefined);
     const [selectStatus, setSelectStatus] = useState<Map<string, boolean>>(new Map<string, boolean>());
@@ -141,7 +137,7 @@ export function KameletPropertyField(props: Props) {
             selectOptions.push(...property.enum.map((value: string) =>
                 <SelectOption key={value} value={value ? value.trim() : value}/>));
         }
-        return <InputGroup className={valueChangedClassName}>
+        return <InputGroup>
             {showInfraSelectorButton  &&
                 <Tooltip position="bottom-end" content={"Select from " + capitalize(InfrastructureAPI.infrastructure)}>
                     <Button variant="control" onClick={e => openInfrastructureSelector(property.id)}>
@@ -175,11 +171,10 @@ export function KameletPropertyField(props: Props) {
                 <TextInput
                     ref={ref}
                     className="text-field" isRequired
-                    type='text'
-                    validated={validated}
+                    type={property.format && !showPassword ? "password" : "text"}
                     autoComplete="off"
                     id={id} name={id}
-                    value={textValue || ''}
+                    value={textValue}
                     onBlur={_ => {
                         if (isNumeric((textValue))) {
                             parametersChanged(property.id, Number(textValue))
@@ -225,6 +220,13 @@ export function KameletPropertyField(props: Props) {
                         setCheckChanges(true);
                     }}/>
             </InputGroupItem>
+            {property.format === "password" &&
+                <Tooltip position="bottom-end" content={showPassword ? "Hide" : "Show"}>
+                    <Button variant="control" onClick={e => setShowPassword(!showPassword)}>
+                        {showPassword ? <ShowIcon/> : <HideIcon/>}
+                    </Button>
+                </Tooltip>
+            }
         </InputGroup>
     }
 
@@ -239,7 +241,7 @@ export function KameletPropertyField(props: Props) {
     }
 
     function getLabel(property: Property, value: any) {
-        const labelClassName = hasValueChanged(property, value) ? 'value-changed-label' : '';
+        const labelClassName = hasValueChanged(property, value) ? 'value-changed' : 'transparent';
         return (
             <div style={{display: "flex", flexDirection: 'row', alignItems: 'center', gap: '3px'}}>
                 <Text className={labelClassName}>{property.title}</Text>
@@ -247,26 +249,10 @@ export function KameletPropertyField(props: Props) {
         )
     }
 
-    function getValidationHelper() {
-        return (
-            validated !== ValidatedOptions.default
-                ? <FormHelperText>
-                    <HelperText>
-                        <HelperTextItem icon={<ExclamationCircleIcon />} variant={validated}>
-                            {'Must be a placeholder {{ }} or secret {{secret:name/key}}'}
-                        </HelperTextItem>
-                    </HelperText>
-                </FormHelperText>
-                : <></>
-        )
-    }
-
     const property =  props.property;
     const value =  props.value;
-    const validated = (property.format === 'password' && !isSensitiveFieldValid(value)) ? ValidatedOptions.error : ValidatedOptions.default;
     const prefix = "parameters";
     const id = prefix + "-" + property.id;
-    const valueChangedClassName = hasValueChanged(property, value) ? 'value-changed' : '';
     return (
         <div>
             <FormGroup
@@ -295,14 +281,12 @@ export function KameletPropertyField(props: Props) {
                 {/*{property.type === 'string' && getStringInput()}*/}
                 {['string','integer', 'int', 'number'].includes(property.type) && getSpecialStringInput()}
                 {property.type === 'boolean' && <Switch
-                    className={valueChangedClassName}
                     id={id} name={id}
                     value={value?.toString()}
                     aria-label={id}
                     isChecked={Boolean(value) === true}
                     onChange={e => parametersChanged(property.id, !Boolean(value))}/>
                 }
-                {getValidationHelper()}
             </FormGroup>
             {getInfrastructureSelectorModal()}
         </div>

@@ -36,7 +36,6 @@ import {TopologyPropertiesPanel} from "./TopologyPropertiesPanel";
 import {TopologyToolbar} from "./TopologyToolbar";
 import {useDesignerStore} from "../designer/DesignerStore";
 import {IntegrationFile} from "core/model/IntegrationDefinition";
-import {TopologyLegend} from "./TopologyLegend";
 
 interface Props {
     files: IntegrationFile[],
@@ -161,7 +160,6 @@ export function TopologyTab(props: Props) {
         >
             <VisualizationProvider controller={controller}>
                 <VisualizationSurface state={{selectedIds}}/>
-                <TopologyLegend/>
             </VisualizationProvider>
         </TopologyView>
     );

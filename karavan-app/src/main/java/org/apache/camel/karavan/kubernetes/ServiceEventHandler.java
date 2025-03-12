@@ -68,7 +68,7 @@ public class ServiceEventHandler implements ResourceEventHandler<Service> {
                     service.getMetadata().getName(),
                     service.getMetadata().getNamespace(),
                     kubernetesStatusService.getCluster(),
-                    kubernetesStatusService.getEnvironment());
+                    kubernetesStatusService.environment);
             eventBus.publish(SERVICE_DELETED, JsonObject.mapFrom(ds));
         } catch (Exception e){
             LOGGER.error(e.getMessage());
@@ -80,7 +80,7 @@ public class ServiceEventHandler implements ResourceEventHandler<Service> {
             return new ServiceStatus(
                     service.getMetadata().getName(),
                     service.getMetadata().getNamespace(),
-                    kubernetesStatusService.getEnvironment(),
+                    kubernetesStatusService.environment,
                     kubernetesStatusService.getCluster(),
                     service.getSpec().getPorts().get(0).getPort(),
                     service.getSpec().getPorts().get(0).getTargetPort().getIntVal(),
@@ -93,7 +93,7 @@ public class ServiceEventHandler implements ResourceEventHandler<Service> {
                     service.getMetadata().getName(),
                     service.getMetadata().getNamespace(),
                     kubernetesStatusService.getCluster(),
-                    kubernetesStatusService.getEnvironment());
+                    kubernetesStatusService.environment);
         }
     }
 }

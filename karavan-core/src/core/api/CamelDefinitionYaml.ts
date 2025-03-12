@@ -16,11 +16,7 @@
  */
 import * as yaml from 'js-yaml';
 import { Beans, CamelElement, Integration } from '../model/IntegrationDefinition';
-import {
-    BeanFactoryDefinition,
-    RouteConfigurationDefinition,
-    RouteDefinition,
-} from '../model/CamelDefinition';
+import { BeanFactoryDefinition, RouteConfigurationDefinition, RouteDefinition } from '../model/CamelDefinition';
 import { CamelUtil } from './CamelUtil';
 import { CamelDefinitionYamlStep } from './CamelDefinitionYamlStep';
 
@@ -99,9 +95,7 @@ export class CamelDefinitionYaml {
             object.inSteps = !!inSteps;
         }
 
-        if (object.dslName === 'RouteTemplateDefinition') {
-            object.route.inArray = true;
-        } else if (object.dslName.endsWith('Expression')) {
+        if (object.dslName.endsWith('Expression')) {
             delete object.language;
             delete object.expressionName;
         } else if (object.dslName.endsWith('DataFormat')) {
@@ -113,7 +107,7 @@ export class CamelDefinitionYaml {
             if (object.constructors && CamelDefinitionYaml.isEmptyObject(object.constructors)) {
                 delete object.constructors;
             }
-        } else if (['CatchDefinition', 'OnExceptionDefinition', 'OnCompletionDefinition', 'Resilience4jConfigurationDefinition'].includes(object.dslName) && object?.onWhen?.stepName !== undefined) {
+        } else if (object.dslName === 'CatchDefinition' && object?.onWhen?.stepName !== undefined) {
             object.onWhen.stepName = 'onWhen';  // https://github.com/apache/camel-karavan/issues/1420
         }
 
@@ -193,11 +187,6 @@ export class CamelDefinitionYaml {
                 const xValue: any = {};
                 xValue[stepName] = newValue;
                 return xValue;
-            } else if (value.inArray && dslName === 'RouteDefinition' && !isKamelet ) { // route in RouteTemplate
-                delete value?.dslName;
-                delete value?.stepName;
-                delete value?.inArray;
-                return value;
             } else if (
                 (value.inArray && !value.inSteps) ||
                 dslName === 'ExpressionSubElementDefinition' ||
@@ -240,10 +229,6 @@ export class CamelDefinitionYaml {
                 return xValue;
             }
         } else {
-            if (value?.dslName === 'YAMLDataFormat') { // YAMLDataFormat constructor field
-                value.constructor = value._constructor;
-                delete value._constructor;
-            }
             delete value?.dslName;
             return value;
         }
@@ -317,8 +302,6 @@ export class CamelDefinitionYaml {
             .forEach((f: any) => result.push(CamelDefinitionYamlStep.readRestConfigurationDefinition(f.restConfiguration)));
         flows.filter((e: any) => e.hasOwnProperty('rest'))
             .forEach((f: any) => result.push(CamelDefinitionYamlStep.readRestDefinition(f.rest)));
-        flows.filter((e: any) => e.hasOwnProperty('routeTemplate'))
-            .forEach((f: any) => result.push(CamelDefinitionYamlStep.readRouteTemplateDefinition(f.routeTemplate)));
         flows.filter((e: any) => e.hasOwnProperty('route'))
             .forEach((f: any) => result.push(CamelDefinitionYamlStep.readRouteDefinition(f.route)));
         flows.filter((e: any) => e.hasOwnProperty('from'))

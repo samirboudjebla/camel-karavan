@@ -30,12 +30,10 @@ export enum ProjectType {
     templates ='templates',
     kamelets ='kamelets',
     configuration ='configuration',
-    services ='services',
     normal ='normal',
 }
 
-export const BUILD_IN_PROJECTS: string[] = [ProjectType.kamelets.toString(), ProjectType.templates.toString(), ProjectType.configuration.toString(), ProjectType.services.toString()];
-export const RESERVED_WORDS: string[] = [...BUILD_IN_PROJECTS, 'karavan'];
+export const BUILD_IN_PROJECTS: string[] = [ProjectType.kamelets.toString(), ProjectType.templates.toString(), ProjectType.configuration.toString()];
 
 export class Project {
     projectId: string = '';
@@ -70,7 +68,6 @@ export class DeploymentStatus {
     replicas: number = 0;
     readyReplicas: number = 0;
     unavailableReplicas: number = 0;
-    type: 'devmode' | 'devservice' | 'project' | 'internal' | 'build' | 'unknown' = 'unknown';
 }
 
 export class ServiceStatus {
@@ -108,7 +105,7 @@ export class ContainerStatus {
     ports: ContainerPort [] = [];
     commands: string [] = [];
     inTransit: boolean = false;
-    labels: any
+    camelRuntime: string = ''
 
     public constructor(init?: Partial<ContainerStatus>) {
         Object.assign(this, init);

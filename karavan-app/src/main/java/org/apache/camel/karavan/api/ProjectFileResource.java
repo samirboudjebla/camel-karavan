@@ -16,7 +16,6 @@
  */
 package org.apache.camel.karavan.api;
 
-import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -37,6 +36,9 @@ public class ProjectFileResource {
 
     @Inject
     KaravanCache karavanCache;
+
+    @Inject
+    CodeService codeService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -84,8 +86,8 @@ public class ProjectFileResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/templates/beans")
     public List<ProjectFile> getBeanTemplates() throws Exception {
-        return  karavanCache.getProjectFiles(Project.Type.templates.name()).stream()
-                .filter(file -> file.getName().endsWith(CodeService.BEAN_TEMPLATE_SUFFIX_FILENAME))
+        return  codeService.getBeanTemplateNames().stream()
+                .map(s -> karavanCache.getProjectFile(Project.Type.templates.name(), s))
                 .toList();
     }
 
@@ -122,27 +124,5 @@ public class ProjectFileResource {
                 URLDecoder.decode(filename, StandardCharsets.UTF_8),
                 false
         );
-    }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/copy")
-    public Response copy(JsonObject copy) throws Exception {
-        var fromProjectId = copy.getString("fromProjectId");
-        var fromFilename = copy.getString("fromFilename");
-        var toProjectId = copy.getString("toProjectId");
-        var toFilename = copy.getString("toFilename");
-        var overwrite = copy.getBoolean("overwrite", false);
-        var tofile = karavanCache.getProjectFile(toProjectId, toFilename);
-        if (overwrite || tofile == null) {
-            var file = karavanCache.getProjectFile(fromProjectId, fromFilename);
-            var copyFile = file.copy();
-            copyFile.setProjectId(toProjectId);
-            copyFile.setName(toFilename);
-            karavanCache.saveProjectFile(copyFile, false, false);
-            return Response.ok().build();
-        } else {
-            return Response.notModified().build();
-        }
     }
 }

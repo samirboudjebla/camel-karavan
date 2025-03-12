@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ExtensionContext, Uri, window, workspace, commands, QuickPickItem, env} from 'vscode';
+import { ExtensionContext, Uri, window, workspace, commands, QuickPickItem } from 'vscode';
 import { DesignerView } from "./designerView";
 import { IntegrationView } from "./integrationView";
 import { HelpView } from "./helpView";
@@ -24,7 +24,6 @@ import * as jbang from "./jbang";
 import * as utils from "./utils";
 import * as exec from "./exec";
 import { TopologyView } from './topologyView';
-import vscode from "webview/vscode";
 
 const KARAVAN_LOADED = "karavan:loaded";
 
@@ -169,7 +168,7 @@ export function activate(context: ExtensionContext) {
 
     // Create issue command
     commands.registerCommand('karavan.reportIssue', () => {
-        env.openExternal(Uri.parse('https://github.com/apache/camel-karavan/issues/new?title=[VS+Code]New+report&template=issue_template.md'));
+        commands.executeCommand('open', Uri.parse('https://github.com/apache/camel-karavan/issues/new?title=[VS+Code]New+report&template=issue_template.md'));
     });
 }
 

@@ -43,6 +43,8 @@ export class ProcessorDefinition extends CamelElement {
     loop?: LoopDefinition;
     marshal?: MarshalDefinition;
     multicast?: MulticastDefinition;
+    onFallback?: OnFallbackDefinition;
+    otherwise?: OtherwiseDefinition;
     pausable?: PausableDefinition;
     pipeline?: PipelineDefinition;
     policy?: PolicyDefinition;
@@ -78,13 +80,15 @@ export class ProcessorDefinition extends CamelElement {
     throwException?: ThrowExceptionDefinition;
     to?: string;
     toD?: string;
-    tokenizer?: TokenizerDefinition;
     transacted?: TransactedDefinition;
     transform?: TransformDefinition;
     doTry?: TryDefinition;
     unmarshal?: UnmarshalDefinition;
     validate?: ValidateDefinition;
+    when?: WhenDefinition;
+    whenSkipSendToEndpoint?: WhenSkipSendToEndpointDefinition;
     wireTap?: WireTapDefinition;
+    langChain4j?: LangChain4jTokenizerDefinition;
     public constructor(init?: Partial<ProcessorDefinition>) {
         super('ProcessorDefinition');
         Object.assign(this, init);
@@ -95,14 +99,6 @@ export class BeansDeserializer extends CamelElement {
 
     public constructor(init?: Partial<BeansDeserializer>) {
         super('BeansDeserializer');
-        Object.assign(this, init);
-    }
-}
-
-export class DataFormatsDefinitionDeserializer extends CamelElement {
-
-    public constructor(init?: Partial<DataFormatsDefinitionDeserializer>) {
-        super('DataFormatsDefinitionDeserializer');
         Object.assign(this, init);
     }
 }
@@ -215,7 +211,7 @@ export class CatchDefinition extends CamelElement {
     description?: string;
     disabled?: boolean;
     exception?: string[] = [];
-    onWhen?: OnWhenDefinition;
+    onWhen?: WhenDefinition;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<CatchDefinition>) {
         super('CatchDefinition');
@@ -552,7 +548,6 @@ export class InterceptDefinition extends CamelElement {
     id?: string = 'intercept-' + uuidv4().substring(0,4);
     description?: string;
     disabled?: boolean;
-    onWhen?: OnWhenDefinition;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<InterceptDefinition>) {
         super('InterceptDefinition');
@@ -566,7 +561,6 @@ export class InterceptFromDefinition extends CamelElement {
     description?: string;
     disabled?: boolean;
     uri?: string;
-    onWhen?: OnWhenDefinition;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<InterceptFromDefinition>) {
         super('InterceptFromDefinition');
@@ -582,7 +576,6 @@ export class InterceptSendToEndpointDefinition extends CamelElement {
     uri: string = '';
     skipSendToOriginalEndpoint?: string;
     afterUri?: string;
-    onWhen?: OnWhenDefinition;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<InterceptSendToEndpointDefinition>) {
         super('InterceptSendToEndpointDefinition');
@@ -605,6 +598,7 @@ export class LoadBalanceDefinition extends CamelElement {
     id?: string = 'loadBalance-' + uuidv4().substring(0,4);
     description?: string;
     disabled?: boolean;
+    inheritErrorHandler?: boolean;
     customLoadBalancer?: CustomLoadBalancerDefinition | string;
     failoverLoadBalancer?: FailoverLoadBalancerDefinition;
     randomLoadBalancer?: RandomLoadBalancerDefinition;
@@ -629,7 +623,6 @@ export class LogDefinition extends CamelElement {
     logName?: string;
     marker?: string;
     logger?: string;
-    logLanguage?: string;
     public constructor(init?: Partial<LogDefinition>) {
         super('LogDefinition');
         Object.assign(this, init);
@@ -645,7 +638,6 @@ export class LoopDefinition extends CamelElement {
     copy?: boolean;
     doWhile?: boolean;
     breakOnShutdown?: boolean;
-    onPrepare?: string;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<LoopDefinition>) {
         super('LoopDefinition');
@@ -673,7 +665,6 @@ export class MarshalDefinition extends CamelElement {
     fhirJson?: FhirJsonDataFormat;
     fhirXml?: FhirXmlDataFormat;
     flatpack?: FlatpackDataFormat;
-    fury?: FuryDataFormat;
     grok?: GrokDataFormat;
     gzipDeflater?: GzipDeflaterDataFormat;
     hl7?: HL7DataFormat;
@@ -688,7 +679,6 @@ export class MarshalDefinition extends CamelElement {
     pgp?: PGPDataFormat;
     protobuf?: ProtobufDataFormat | string;
     rss?: RssDataFormat;
-    smooks?: SmooksDataFormat;
     soap?: SoapDataFormat | string;
     swiftMt?: SwiftMtDataFormat | string;
     swiftMx?: SwiftMxDataFormat;
@@ -744,7 +734,7 @@ export class OnCompletionDefinition extends CamelElement {
     parallelProcessing?: boolean;
     executorService?: string;
     useOriginalMessage?: boolean;
-    onWhen?: OnWhenDefinition;
+    onWhen?: WhenDefinition;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<OnCompletionDefinition>) {
         super('OnCompletionDefinition');
@@ -758,7 +748,7 @@ export class OnExceptionDefinition extends CamelElement {
     description?: string;
     disabled?: boolean;
     exception?: string[] = [];
-    onWhen?: OnWhenDefinition;
+    onWhen?: WhenDefinition;
     retryWhile?: ExpressionSubElementDefinition;
     redeliveryPolicy?: RedeliveryPolicyDefinition;
     redeliveryPolicyRef?: string;
@@ -779,21 +769,11 @@ export class OnFallbackDefinition extends CamelElement {
     stepName?: string = 'onFallback';
     id?: string = 'onFallback-' + uuidv4().substring(0,4);
     description?: string;
+    disabled?: boolean;
     fallbackViaNetwork?: boolean;
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<OnFallbackDefinition>) {
         super('OnFallbackDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class OnWhenDefinition extends CamelElement {
-    stepName?: string = 'onWhen';
-    id?: string = 'onWhen-' + uuidv4().substring(0,4);
-    description?: string;
-    expression?: ExpressionDefinition;
-    public constructor(init?: Partial<OnWhenDefinition>) {
-        super('OnWhenDefinition');
         Object.assign(this, init);
     }
 }
@@ -1256,11 +1236,11 @@ export class RouteTemplateDefinition extends CamelElement {
 }
 
 export class RouteTemplateParameterDefinition extends CamelElement {
-    stepName?: string = 'templateParameter';
+    stepName?: string = 'routeTemplateParameter';
+    defaultValue?: string;
     description?: string;
     name: string = '';
     required?: boolean;
-    defaultValue?: string;
     public constructor(init?: Partial<RouteTemplateParameterDefinition>) {
         super('RouteTemplateParameterDefinition');
         Object.assign(this, init);
@@ -1619,31 +1599,6 @@ export class ToDynamicDefinition extends CamelElement {
     }
 }
 
-export class TokenizerDefinition extends CamelElement {
-    stepName?: string = 'tokenizer';
-    id?: string = 'tokenizer-' + uuidv4().substring(0,4);
-    description?: string;
-    disabled?: boolean;
-    langChain4jCharacterTokenizer?: LangChain4jCharacterTokenizerDefinition;
-    langChain4jLineTokenizer?: LangChain4jTokenizerDefinition;
-    langChain4jParagraphTokenizer?: LangChain4jParagraphTokenizerDefinition;
-    langChain4jSentenceTokenizer?: LangChain4jSentenceTokenizerDefinition;
-    langChain4jWordTokenizer?: LangChain4jWordTokenizerDefinition;
-    public constructor(init?: Partial<TokenizerDefinition>) {
-        super('TokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class TokenizerImplementationDefinition extends CamelElement {
-    stepName?: string = 'tokenizerImplementation';
-    id?: string = 'tokenizerImplementation-' + uuidv4().substring(0,4);
-    public constructor(init?: Partial<TokenizerImplementationDefinition>) {
-        super('TokenizerImplementationDefinition');
-        Object.assign(this, init);
-    }
-}
-
 export class TransactedDefinition extends CamelElement {
     stepName?: string = 'transacted';
     id?: string = 'transacted-' + uuidv4().substring(0,4);
@@ -1706,7 +1661,6 @@ export class UnmarshalDefinition extends CamelElement {
     fhirJson?: FhirJsonDataFormat;
     fhirXml?: FhirXmlDataFormat;
     flatpack?: FlatpackDataFormat;
-    fury?: FuryDataFormat;
     grok?: GrokDataFormat;
     gzipDeflater?: GzipDeflaterDataFormat;
     hl7?: HL7DataFormat;
@@ -1721,7 +1675,6 @@ export class UnmarshalDefinition extends CamelElement {
     pgp?: PGPDataFormat;
     protobuf?: ProtobufDataFormat | string;
     rss?: RssDataFormat;
-    smooks?: SmooksDataFormat;
     soap?: SoapDataFormat | string;
     swiftMt?: SwiftMtDataFormat | string;
     swiftMx?: SwiftMxDataFormat;
@@ -1773,6 +1726,19 @@ export class WhenDefinition extends CamelElement {
     steps?: CamelElement[] = [];
     public constructor(init?: Partial<WhenDefinition>) {
         super('WhenDefinition');
+        Object.assign(this, init);
+    }
+}
+
+export class WhenSkipSendToEndpointDefinition extends CamelElement {
+    stepName?: string = 'whenSkipSendToEndpoint';
+    id?: string = 'whenSkipSendToEndpoint-' + uuidv4().substring(0,4);
+    description?: string;
+    disabled?: boolean;
+    expression?: ExpressionDefinition;
+    steps?: CamelElement[] = [];
+    public constructor(init?: Partial<WhenSkipSendToEndpointDefinition>) {
+        super('WhenSkipSendToEndpointDefinition');
         Object.assign(this, init);
     }
 }
@@ -2070,7 +2036,6 @@ export class DataFormatsDefinition extends CamelElement {
     fhirJson?: FhirJsonDataFormat;
     fhirXml?: FhirXmlDataFormat;
     flatpack?: FlatpackDataFormat;
-    fury?: FuryDataFormat;
     grok?: GrokDataFormat;
     gzipDeflater?: GzipDeflaterDataFormat;
     hl7?: HL7DataFormat;
@@ -2085,7 +2050,6 @@ export class DataFormatsDefinition extends CamelElement {
     pgp?: PGPDataFormat;
     protobuf?: ProtobufDataFormat | string;
     rss?: RssDataFormat;
-    smooks?: SmooksDataFormat;
     soap?: SoapDataFormat | string;
     swiftMt?: SwiftMtDataFormat | string;
     swiftMx?: SwiftMxDataFormat;
@@ -2173,19 +2137,6 @@ export class FlatpackDataFormat extends CamelElement {
     parserFactoryRef?: string;
     public constructor(init?: Partial<FlatpackDataFormat>) {
         super('FlatpackDataFormat');
-        Object.assign(this, init);
-    }
-}
-
-export class FuryDataFormat extends CamelElement {
-    dataFormatName?: string = 'fury';
-    id?: string = 'fury-' + uuidv4().substring(0,4);
-    unmarshalType?: string;
-    requireClassRegistration?: boolean;
-    threadSafe?: boolean;
-    allowAutoWiredFury?: boolean;
-    public constructor(init?: Partial<FuryDataFormat>) {
-        super('FuryDataFormat');
         Object.assign(this, init);
     }
 }
@@ -2305,7 +2256,6 @@ export class JsonDataFormat extends CamelElement {
     autoDiscoverObjectMapper?: boolean;
     prettyPrint?: boolean;
     library?: string;
-    combineUnicodeSurrogates?: boolean;
     unmarshalType?: string;
     jsonView?: string;
     include?: string;
@@ -2423,16 +2373,6 @@ export class RssDataFormat extends CamelElement {
     id?: string = 'rss-' + uuidv4().substring(0,4);
     public constructor(init?: Partial<RssDataFormat>) {
         super('RssDataFormat');
-        Object.assign(this, init);
-    }
-}
-
-export class SmooksDataFormat extends CamelElement {
-    dataFormatName?: string = 'smooks';
-    id?: string = 'smooks-' + uuidv4().substring(0,4);
-    smooksConfig: string = '';
-    public constructor(init?: Partial<SmooksDataFormat>) {
-        super('SmooksDataFormat');
         Object.assign(this, init);
     }
 }
@@ -3279,9 +3219,6 @@ export class DeleteDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3295,6 +3232,9 @@ export class DeleteDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<DeleteDefinition>) {
         super('DeleteDefinition');
         Object.assign(this, init);
@@ -3308,9 +3248,6 @@ export class GetDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3324,6 +3261,9 @@ export class GetDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<GetDefinition>) {
         super('GetDefinition');
         Object.assign(this, init);
@@ -3337,9 +3277,6 @@ export class HeadDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3353,6 +3290,9 @@ export class HeadDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<HeadDefinition>) {
         super('HeadDefinition');
         Object.assign(this, init);
@@ -3436,9 +3376,6 @@ export class PatchDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3452,6 +3389,9 @@ export class PatchDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<PatchDefinition>) {
         super('PatchDefinition');
         Object.assign(this, init);
@@ -3465,9 +3405,6 @@ export class PostDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3481,6 +3418,9 @@ export class PostDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<PostDefinition>) {
         super('PostDefinition');
         Object.assign(this, init);
@@ -3494,9 +3434,6 @@ export class PutDefinition extends CamelElement {
     disabled?: boolean;
     path?: string;
     to?: string;
-    param?: ParamDefinition[] = [];
-    responseMessage?: ResponseMessageDefinition[] = [];
-    security?: SecurityDefinition[] = [];
     consumes?: string;
     produces?: string;
     type?: string;
@@ -3510,6 +3447,9 @@ export class PutDefinition extends CamelElement {
     deprecated?: boolean;
     streamCache?: boolean;
     routeId?: string;
+    param?: ParamDefinition[] = [];
+    responseMessage?: ResponseMessageDefinition[] = [];
+    security?: SecurityDefinition[] = [];
     public constructor(init?: Partial<PutDefinition>) {
         super('PutDefinition');
         Object.assign(this, init);
@@ -3677,74 +3617,16 @@ export class SecurityDefinition extends CamelElement {
     }
 }
 
-export class LangChain4jCharacterTokenizerDefinition extends CamelElement {
-    stepName?: string = 'langChain4jCharacterTokenizer';
-    id?: string = 'langChain4jCharacterTokenizer-' + uuidv4().substring(0,4);
-    tokenizerType?: string;
-    maxTokens: number = 0;
-    maxOverlap: number = 0;
-    public constructor(init?: Partial<LangChain4jCharacterTokenizerDefinition>) {
-        super('LangChain4jCharacterTokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class LangChain4jLineTokenizerDefinition extends CamelElement {
-    stepName?: string = 'langChain4jLineTokenizer';
-    id?: string = 'langChain4jLineTokenizer-' + uuidv4().substring(0,4);
-    tokenizerType?: string;
-    maxTokens: number = 0;
-    maxOverlap: number = 0;
-    public constructor(init?: Partial<LangChain4jLineTokenizerDefinition>) {
-        super('LangChain4jLineTokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class LangChain4jParagraphTokenizerDefinition extends CamelElement {
-    stepName?: string = 'langChain4jParagraphTokenizer';
-    id?: string = 'langChain4jParagraphTokenizer-' + uuidv4().substring(0,4);
-    tokenizerType?: string;
-    maxTokens: number = 0;
-    maxOverlap: number = 0;
-    public constructor(init?: Partial<LangChain4jParagraphTokenizerDefinition>) {
-        super('LangChain4jParagraphTokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class LangChain4jSentenceTokenizerDefinition extends CamelElement {
-    stepName?: string = 'langChain4jSentenceTokenizer';
-    id?: string = 'langChain4jSentenceTokenizer-' + uuidv4().substring(0,4);
-    tokenizerType?: string;
-    maxTokens: number = 0;
-    maxOverlap: number = 0;
-    public constructor(init?: Partial<LangChain4jSentenceTokenizerDefinition>) {
-        super('LangChain4jSentenceTokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
 export class LangChain4jTokenizerDefinition extends CamelElement {
     stepName?: string = 'langChain4j';
     id?: string = 'langChain4j-' + uuidv4().substring(0,4);
-    maxOverlap: number = 0;
-    maxTokens: number = 0;
+    description?: string;
+    disabled?: boolean;
     tokenizerType?: string;
+    maxTokens: number = 0;
+    maxOverlap: number = 0;
     public constructor(init?: Partial<LangChain4jTokenizerDefinition>) {
         super('LangChain4jTokenizerDefinition');
-        Object.assign(this, init);
-    }
-}
-
-export class LangChain4jWordTokenizerDefinition extends CamelElement {
-    stepName?: string = 'langChain4jWordTokenizer';
-    id?: string = 'langChain4jWordTokenizer-' + uuidv4().substring(0,4);
-    tokenizerType?: string;
-    maxTokens: number = 0;
-    maxOverlap: number = 0;
-    public constructor(init?: Partial<LangChain4jWordTokenizerDefinition>) {
-        super('LangChain4jWordTokenizerDefinition');
         Object.assign(this, init);
     }
 }
@@ -3778,7 +3660,6 @@ export class DataFormatTransformerDefinition extends CamelElement {
     fhirJson?: FhirJsonDataFormat;
     fhirXml?: FhirXmlDataFormat;
     flatpack?: FlatpackDataFormat;
-    fury?: FuryDataFormat;
     grok?: GrokDataFormat;
     gzipDeflater?: GzipDeflaterDataFormat;
     hl7?: HL7DataFormat;
@@ -3793,7 +3674,6 @@ export class DataFormatTransformerDefinition extends CamelElement {
     pgp?: PGPDataFormat;
     protobuf?: ProtobufDataFormat | string;
     rss?: RssDataFormat;
-    smooks?: SmooksDataFormat;
     soap?: SoapDataFormat | string;
     swiftMt?: SwiftMtDataFormat | string;
     swiftMx?: SwiftMxDataFormat;

@@ -33,7 +33,7 @@ interface Props {
     dark: boolean,
 }
 
-export const SystemPage = (props: Props) => {
+export const ConfigurationPage = (props: Props) => {
 
     const [tab, setTab] = useState<string | number>("statuses");
 
@@ -56,13 +56,19 @@ export const SystemPage = (props: Props) => {
                         Cleanup statuses
                     </Button>
                 </ToolbarItem>}
+                {tab === 'secrets' && <ToolbarItem>
+                    <Button>Add Secret</Button>
+                </ToolbarItem>}
+                {tab === 'configMaps' && <ToolbarItem>
+                    <Button>Add ConfigMap</Button>
+                </ToolbarItem>}
             </ToolbarContent>
         </Toolbar>);
     }
 
     function title() {
         return (<TextContent>
-            <Text component="h2">System</Text>
+            <Text component="h2">Configuration</Text>
         </TextContent>);
     }
 

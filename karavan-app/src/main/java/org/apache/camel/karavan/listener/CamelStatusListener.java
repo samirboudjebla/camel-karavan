@@ -37,7 +37,6 @@ import org.jboss.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.camel.karavan.KaravanEvents.CMD_COLLECT_CAMEL_STATUS;
@@ -83,7 +82,7 @@ public class CamelStatusListener {
             CamelStatus cs = new CamelStatus(projectId, containerName, statuses, environment);
             karavanCache.saveCamelStatus(cs);
         } catch (Exception ex) {
-//            LOGGER.warn("collectCamelStatuses " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
+            LOGGER.error("collectCamelStatuses " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
         }
     }
 
@@ -102,13 +101,11 @@ public class CamelStatusListener {
     }
 
     public String getCamelStatus(PodContainerStatus podContainerStatus, CamelStatusValue.Name statusName) throws Exception {
-        var name = statusName.name();
-        var path = "/q/dev/" + name + (Objects.equals(name, "trace") ? "?dump=true" : "");
-        String url = getContainerAddressForStatus(podContainerStatus) + path;
+        String url = getContainerAddressForStatus(podContainerStatus) + "/q/dev/" + statusName.name();
         try {
             return getResult(url, 500);
         } catch (InterruptedException | ExecutionException ex) {
-//            LOGGER.warn("getCamelStatus " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
+            LOGGER.error("getCamelStatus " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
         }
         return null;
     }
@@ -123,7 +120,8 @@ public class CamelStatusListener {
                 return res.encodePrettily();
             }
         } catch (Exception ex) {
-//            LOGGER.warn("getResult " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
+            LOGGER.error("getResult " + url);
+            LOGGER.error("getResult " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
         }
         return null;
     }

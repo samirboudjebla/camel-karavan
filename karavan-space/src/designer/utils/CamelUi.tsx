@@ -25,7 +25,6 @@ import {
     BeanFactoryDefinition,
     RouteConfigurationDefinition,
     RouteDefinition,
-    RouteTemplateDefinition,
     ToDefinition
 } from "karavan-core/lib/model/CamelDefinition";
 import {CamelElement, Integration, IntegrationFile} from "karavan-core/lib/model/IntegrationDefinition";
@@ -86,7 +85,7 @@ import {
     InterceptFrom,
     InterceptSendToEndpoint, LoadBalanceIcon,
     OnCompletion, PollIcon,
-    SagaIcon, SetExchangePatternIcon,
+    SagaIcon,
     SortIcon,
     SplitIcon,
     ToIcon,
@@ -132,7 +131,6 @@ const StepElements: string[] = [
     "SamplingDefinition",
     "SagaDefinition",
     "SetBodyDefinition",
-    "SetExchangePatternDefinition",
     "SetHeaderDefinition",
     "SetHeadersDefinition",
     "SetVariableDefinition",
@@ -213,10 +211,10 @@ export class CamelUi {
 
     static checkFilter = (dsl: DslMetaModel, filter: string | undefined = undefined): boolean => {
         if (filter !== undefined && filter !== "") {
-            return dsl?.name?.toLowerCase().includes(filter.toLowerCase())
-                || dsl?.description?.toLowerCase().includes(filter.toLowerCase())
-                || dsl?.title?.toLowerCase().includes(filter.toLowerCase())
-                || dsl?.labels?.toLowerCase().includes(filter.toLowerCase());
+            return dsl.name.toLowerCase().includes(filter.toLowerCase())
+                || dsl.description.toLowerCase().includes(filter.toLowerCase())
+                || dsl.title.toLowerCase().includes(filter.toLowerCase())
+                || dsl.labels.toLowerCase().includes(filter.toLowerCase());
         } else {
             return true;
         }
@@ -403,7 +401,7 @@ export class CamelUi {
     static isShowExpressionTooltip = (element: CamelElement): boolean => {
         if (element.hasOwnProperty("expression")) {
             const exp = CamelDefinitionApiExt.getExpressionValue((element as any).expression);
-            return (exp !== undefined && (exp as any)?.expression?.toString()?.trim().length > 0);
+            return (exp !== undefined && (exp as any)?.expression?.trim().length > 0);
         }
         return false;
     }
@@ -714,7 +712,7 @@ export class CamelUi {
             return k ? this.getIconFromSource(k.icon()) : CamelUi.getIconForDslName(element.dslName);
         } else if ("FromDefinition" === element.dslName && component !== undefined && component.component.remote !== true) {
             return this.getIconForComponent(component?.component.title, component?.component.label);
-        } else if (["ToDefinition", "ToDynamicDefinition"].includes(element.dslName) && (element as ToDefinition).uri?.startsWith("kamelet:")) {
+        } else if (element.dslName === "ToDefinition" && (element as ToDefinition).uri?.startsWith("kamelet:")) {
             return k ? this.getIconFromSource(k.icon()) : CamelUi.getIconForDslName(element.dslName);
         } else if (element.dslName === "ToDefinition" && component && component.component.remote !== true) {
             return this.getIconForComponent(component?.component.title, component?.component.label);
@@ -729,9 +727,7 @@ export class CamelUi {
             case 'AggregateDefinition':
                 return <AggregateIcon/>;
             case 'ToDefinition':
-                return ToIcon();
-            case 'ToDynamicDefinition':
-                return ToIcon('dynamic');
+                return <ToIcon/>;
             case 'PollDefinition':
                 return <PollIcon/>;
             case 'ChoiceDefinition' :
@@ -744,8 +740,6 @@ export class CamelUi {
                 return <LoadBalanceIcon/>;
             case 'FilterDefinition' :
                 return <FilterIcon/>;
-            case 'SetExchangePatternDefinition' :
-                return <SetExchangePatternIcon/>;
             case 'SortDefinition' :
                 return <SortIcon/>;
             case 'OnCompletionDefinition' :
@@ -792,7 +786,7 @@ export class CamelUi {
                     <image href={icon} className="icon"/>
                 </svg>
             )
-        } else if (["ToDefinition", "ToDynamicDefinition"].includes(element.dslName) && (element as any).uri?.startsWith("kamelet:")) {
+        } else if (element.dslName === "ToDefinition" && (element as ToDefinition).uri?.startsWith("kamelet:")) {
             const icon = k ? k.icon() : CamelUi.getIconSrcForName(element.dslName);
             return  (
                 <svg className="icon">
@@ -821,7 +815,7 @@ export class CamelUi {
 
     static getFlowCounts = (i: Integration): Map<string, number> => {
         const result = new Map<string, number>();
-        result.set('routes', i.spec.flows?.filter((e: any) => ['RouteDefinition', 'RouteTemplateDefinition'].includes(e.dslName)).length || 0);
+        result.set('routes', i.spec.flows?.filter((e: any) => e.dslName === 'RouteDefinition').length || 0);
         result.set('rest', i.spec.flows?.filter((e: any) => e.dslName === 'RestDefinition').length || 0);
         result.set('routeConfiguration', i.spec.flows?.filter((e: any) => e.dslName === 'RouteConfigurationDefinition').length || 0);
         const beans = i.spec.flows?.filter((e: any) => e.dslName === 'Beans');
@@ -857,13 +851,6 @@ export class CamelUi {
     static getRouteConfigurations = (integration: Integration): RouteConfigurationDefinition[] | undefined => {
         const result: CamelElement[] = [];
         integration.spec.flows?.filter((e: any) => e.dslName === 'RouteConfigurationDefinition')
-            .forEach((f: any) => result.push(f));
-        return result;
-    }
-
-    static getRouteTemplates = (integration: Integration): RouteTemplateDefinition[] | undefined => {
-        const result: RouteTemplateDefinition[] = [];
-        integration.spec.flows?.filter((e: any) => e.dslName === 'RouteTemplateDefinition')
             .forEach((f: any) => result.push(f));
         return result;
     }

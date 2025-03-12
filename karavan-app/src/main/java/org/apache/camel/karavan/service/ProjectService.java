@@ -93,24 +93,24 @@ public class ProjectService {
         }
     }
 
-    public String runProjectInDeveloperMode(String projectId, Boolean verbose, Boolean compile, Map<String, String> labels, Map<String, String> envVars) throws Exception {
-        String containerName = projectId;
-        PodContainerStatus status = karavanCache.getDevModePodContainerStatus(projectId, environment);
+    public String runProjectWithJBangOptions(Project project, String jBangOptions) throws Exception {
+        String containerName = project.getProjectId();
+        PodContainerStatus status = karavanCache.getDevModePodContainerStatus(project.getProjectId(), environment);
         if (status == null) {
-            status = PodContainerStatus.createDevMode(projectId, environment);
+            status = PodContainerStatus.createDevMode(project.getProjectId(), environment);
         }
         if (!Objects.equals(status.getState(), PodContainerStatus.State.running.name())) {
             status.setInTransit(true);
             eventBus.publish(POD_CONTAINER_UPDATED, JsonObject.mapFrom(status));
 
-            Map<String, String> files = codeService.getProjectFilesForDevMode(projectId, true);
-            String projectDevmodeImage = codeService.getProjectDevModeImage(projectId);
+            Map<String, String> files = codeService.getProjectFilesForDevMode(project.getProjectId(), true);
+            String projectDevmodeImage = codeService.getProjectDevModeImage(project.getProjectId());
             if (ConfigService.inKubernetes()) {
-                String deploymentFragment = codeService.getDeploymentFragment(projectId);
-                kubernetesService.runDevModeContainer(projectId, verbose, compile, files, projectDevmodeImage, deploymentFragment, labels, envVars);
+                String deploymentFragment = codeService.getDeploymentFragment(project.getProjectId());
+                kubernetesService.runDevModeContainer(project, jBangOptions, files, projectDevmodeImage, deploymentFragment);
             } else {
-                DockerComposeService compose = getProjectDockerComposeService(projectId);
-                dockerForKaravan.runProjectInDevMode(projectId, verbose, compile, compose, files, projectDevmodeImage, labels, envVars);
+                DockerComposeService compose = getProjectDockerComposeService(project.getProjectId());
+                dockerForKaravan.runProjectInDevMode(project.getProjectId(), jBangOptions, compose, files, projectDevmodeImage);
             }
             return containerName;
         } else {
@@ -126,7 +126,7 @@ public class ProjectService {
         if (ConfigService.inKubernetes()) {
             String podFragment = codeService.getBuilderPodFragment();
             podFragment = codeService.substituteVariables(podFragment, Map.of( "projectId", project.getProjectId(), "tag", tag));
-            kubernetesService.runBuildProject(project.getProjectId(), podFragment);
+            kubernetesService.runBuildProject(project, podFragment);
         } else {
             Map<String, String> sshFiles = getSshFiles();
             String composeFragment =  codeService.getBuilderComposeFragment(project.getProjectId(), tag);
@@ -180,15 +180,9 @@ public class ProjectService {
         }
     }
 
-    public String getDockerDevServiceCode() {
-        List<ProjectFile> files = karavanCache.getProjectFiles(Project.Type.services.name());
+    public String getDevServiceCode() {
+        List<ProjectFile> files = karavanCache.getProjectFiles(Project.Type.configuration.name());
         Optional<ProjectFile> file = files.stream().filter(f -> f.getName().equals(DEV_SERVICES_FILENAME)).findFirst();
-        return file.orElse(new ProjectFile()).getCode();
-    }
-
-    public String getKubernetesDevServiceCode(String name) {
-        List<ProjectFile> files = karavanCache.getProjectFiles(Project.Type.services.name());
-        Optional<ProjectFile> file = files.stream().filter(f -> f.getName().equals(name + ".yaml")).findFirst();
         return file.orElse(new ProjectFile()).getCode();
     }
 
@@ -203,13 +197,13 @@ public class ProjectService {
 
         String sourceProjectIdProperty = String.format(PROPERTY_FORMATTER_PROJECT_ID, sourceProject.getProjectId());
         String sourceProjectNameProperty = String.format(PROPERTY_FORMATTER_PROJECT_NAME, sourceProject.getName());
-        String sourceGavProperty = fileContent.lines().filter(line -> line.startsWith(PROPERTY_NAME_GAV)).findFirst().orElse("");
+        String sourceGavProperty = String.format(codeService.getGavFormatter(), sourceProject.getProjectId());
 
         String[] searchValues = {sourceProjectIdProperty, sourceProjectNameProperty, sourceGavProperty};
 
         String updatedProjectIdProperty = String.format(PROPERTY_FORMATTER_PROJECT_ID, project.getProjectId());
         String updatedProjectNameProperty = String.format(PROPERTY_FORMATTER_PROJECT_NAME, project.getName());
-        String updatedGavProperty = String.format(codeService.getGavFormatter(), project.getGavPackageSuffix());
+        String updatedGavProperty = String.format(codeService.getGavFormatter(), project.getProjectId());
 
         String[] replacementValues = {updatedProjectIdProperty, updatedProjectNameProperty, updatedGavProperty};
 
@@ -270,8 +264,9 @@ public class ProjectService {
 
             // Copy files from the source and make necessary modifications
             Map<String, ProjectFile> filesMap = karavanCache.getProjectFilesMap(sourceProjectId).entrySet().stream()
-                    .filter(e -> !Objects.equals(e.getValue().getName(), PROJECT_COMPOSE_FILENAME))
-                    .filter(e -> !Objects.equals(e.getValue().getName(), PROJECT_DEPLOYMENT_JKUBE_FILENAME))
+                    .filter(e -> !Objects.equals(e.getValue().getName(), PROJECT_COMPOSE_FILENAME) &&
+                            !Objects.equals(e.getValue().getName(), PROJECT_DEPLOYMENT_JKUBE_FILENAME)
+                    )
                     .collect(Collectors.toMap(
                             e -> GroupedKey.create(project.getProjectId(), DEV, e.getValue().getName()),
                             e -> {
@@ -298,17 +293,13 @@ public class ProjectService {
     }
 
     public Integer getProjectPort(ProjectFile composeFile) {
-        try {
-            if (composeFile != null) {
-                DockerComposeService dcs = DockerComposeConverter.fromCode(composeFile.getCode(), composeFile.getProjectId());
-                Optional<Integer> port = dcs.getPortsMap().entrySet().stream()
-                        .filter(e -> Objects.equals(e.getValue(), INTERNAL_PORT)).map(Map.Entry::getKey).findFirst();
-                return port.orElse(null);
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
+        if (composeFile != null) {
+            DockerComposeService dcs = DockerComposeConverter.fromCode(composeFile.getCode(), composeFile.getProjectId());
+            Optional<Integer> port = dcs.getPortsMap().entrySet().stream()
+                    .filter(e -> Objects.equals(e.getValue(), INTERNAL_PORT)).map(Map.Entry::getKey).findFirst();
+            return port.orElse(null);
         }
+        return null;
     }
 
     private int getMaxPortMappedInProjects() {

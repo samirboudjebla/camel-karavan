@@ -16,10 +16,15 @@
  */
 import React, {useCallback, useEffect, useRef} from 'react';
 import {
-    Button,
+    Drawer,
+    DrawerPanelContent,
+    DrawerContent,
+    DrawerContentBody,
+    Button
 } from '@patternfly/react-core';
 import '../karavan.css';
 import {DslSelector} from "../selector/DslSelector";
+import {DslProperties} from "../property/DslProperties";
 import {DslConnections} from "./DslConnections";
 import PlusIcon from "@patternfly/react-icons/dist/esm/icons/plus-icon";
 import {DslElement} from "./element/DslElement";
@@ -29,25 +34,23 @@ import {useConnectionsStore, useDesignerStore, useIntegrationStore, useSelectorS
 import {shallow} from "zustand/shallow";
 import useResizeObserver from "./useResizeObserver";
 import {Command, EventBus} from "../utils/EventBus";
+import useMutationsObserver from "./useDrawerMutationsObserver";
 import {DeleteConfirmation} from "./DeleteConfirmation";
 import {DslElementMoveModal} from "./element/DslElementMoveModal";
-import {RouteTemplateElement} from "./element/RouteTemplateElement";
 
 export function RouteDesigner() {
 
     const {openSelector, createRouteConfiguration, onCommand, unselectElement, onDslSelect,
-        isSourceKamelet, isActionKamelet, isKamelet, isSinkKamelet, createRouteTemplate} = useRouteDesignerHook();
+        isSourceKamelet, isActionKamelet, isKamelet, isSinkKamelet} = useRouteDesignerHook();
 
     const [integration] = useIntegrationStore((state) => [state.integration], shallow)
-    const [showDeleteConfirmation, setPosition, width, height, top, left, showMoveConfirmation, setShowMoveConfirmation, passedIds, selectedStep, isDebugging] =
+    const [showDeleteConfirmation, setPosition, width, height, top, left, showMoveConfirmation, setShowMoveConfirmation] =
         useDesignerStore((s) =>
-        [s.showDeleteConfirmation, s.setPosition, s.width, s.height, s.top, s.left, s.showMoveConfirmation, s.setShowMoveConfirmation, s.passedNodeIds, s.selectedStep, s.isDebugging], shallow)
+        [s.showDeleteConfirmation, s.setPosition, s.width, s.height, s.top, s.left, s.showMoveConfirmation, s.setShowMoveConfirmation], shallow)
 
     const [showSelector] = useSelectorStore((s) => [s.showSelector], shallow)
 
     const [clearSteps] = useConnectionsStore((s) => [s.clearSteps], shallow)
-
-    const [key, setKey] = React.useState<string | number>();
 
     const onChangeGraphSize = useCallback((target: HTMLDivElement)  => {
         changeGraphSize();
@@ -64,34 +67,39 @@ export function RouteDesigner() {
     }
 
     const firstRef = useResizeObserver(onChangeGraphSize);
+    const secondRef = useMutationsObserver(onChangeGraphSize);
     const printerRef = useRef<HTMLDivElement | null>(null);
     const flowRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (selectedStep === undefined) {
-            setKey(Math.random.toString())
-        }
-    }, []);
 
     useEffect(()=> {
         const interval = setInterval(() => {
             changeGraphSize();
         }, 300);
         const commandSub = EventBus.onCommand()?.subscribe((command: Command) => onCommand(command, printerRef));
-        try {
-            if (flowRef.current === null) {
-                clearSteps();
-            } else {
-                changeGraphSize();
-            }
-        } catch (error) {
-            console.error(error);
+        if (flowRef.current === null) {
+            clearSteps();
+        } else {
+            changeGraphSize();
         }
         return ()=> {
             clearInterval(interval)
             commandSub?.unsubscribe();
         }
     }, [showSelector, integration])
+
+    function getPropertiesPanel() {
+        return (
+            <DrawerPanelContent style={{transform: "initial"}}
+                                isResizable
+                                hasNoBorder
+                                defaultSize={'400px'}
+                                maxSize={'800px'}
+                                minSize={'400px'}
+            >
+                <DslProperties designerType={'routes'}/>
+            </DrawerPanelContent>
+        )
+    }
 
     function getGraphButtons() {
         const routes = CamelUi.getRoutes(integration);
@@ -122,23 +130,12 @@ export function RouteDesigner() {
                 >
                     Create configuration
                 </Button>}
-                {<Button
-                    variant="secondary"
-                    icon={<PlusIcon/>}
-                    onClick={evt => {
-                        evt.stopPropagation();
-                        openSelector(undefined, undefined, undefined, undefined, true);
-                    }}
-                >
-                    Create template
-                </Button>}
             </div>
         )
     }
     function getGraph() {
         const routes = CamelUi.getRoutes(integration);
         const routeConfigurations = CamelUi.getRouteConfigurations(integration);
-        const routeTemplates = CamelUi.getRouteTemplates(integration);
         return (
             <div className="graph" ref={printerRef}>
                 <DslConnections/>
@@ -157,16 +154,6 @@ export function RouteDesigner() {
                                     inStepsLength={array.length}
                                     parent={undefined}/>
                     ))}
-                    {routeTemplates?.map((routeTemplate, index: number, array) => (
-                        <RouteTemplateElement key={routeTemplate.uuid}
-                                    inSteps={false}
-                                    position={index}
-                                    step={routeTemplate}
-                                    nextStep={undefined}
-                                    prevStep={undefined}
-                                    inStepsLength={array.length}
-                                    parent={undefined}/>
-                    ))}
                     {routes?.map((route: any, index: number, array) => {
                         return (
                             <DslElement key={route.uuid}
@@ -179,16 +166,20 @@ export function RouteDesigner() {
                                         parent={undefined}/>
                         )
                     })}
-                    {!isDebugging && getGraphButtons()}
+                    {getGraphButtons()}
                 </div>
             </div>)
     }
 
     const hasFlows = integration?.spec?.flows !== undefined;
     return (
-        <div className="dsl-page" ref={firstRef} key={key}>
-            <div className="dsl-page-columns">
-                {hasFlows && getGraph()}
+        <div className="dsl-page" ref={firstRef}>
+            <div className="dsl-page-columns" ref={secondRef}>
+                <Drawer isExpanded isInline>
+                    <DrawerContent panelContent={getPropertiesPanel()}>
+                        <DrawerContentBody>{hasFlows && getGraph()}</DrawerContentBody>
+                    </DrawerContent>
+                </Drawer>
             </div>
             {showSelector && <DslSelector/>}
             {showDeleteConfirmation && <DeleteConfirmation/>}

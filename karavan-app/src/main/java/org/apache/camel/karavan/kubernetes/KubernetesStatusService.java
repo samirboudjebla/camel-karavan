@@ -39,10 +39,9 @@ import org.eclipse.microprofile.health.Readiness;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static org.apache.camel.karavan.KaravanConstants.CAMEL_PREFIX;
 
 @Default
 @Readiness
@@ -63,7 +62,7 @@ public class KubernetesStatusService implements HealthCheck {
     }
 
     @ConfigProperty(name = "karavan.environment", defaultValue = KaravanConstants.DEV)
-    private String environment;
+    public String environment;
 
     @ConfigProperty(name = "karavan.openshift")
     Optional<Boolean> isOpenShift;
@@ -92,17 +91,21 @@ public class KubernetesStatusService implements HealthCheck {
             stopInformers();
             LOGGER.info("Starting Kubernetes Informers");
 
+            Map<String, String> labels = getRuntimeLabels();
             KubernetesClient client = kubernetesClient();
 
-            SharedIndexInformer<Deployment> deploymentInformer = client.apps().deployments().inNamespace(getNamespace()).inform();
+            SharedIndexInformer<Deployment> deploymentInformer = client.apps().deployments().inNamespace(getNamespace())
+                    .withLabels(labels).inform();
             deploymentInformer.addEventHandlerWithResyncPeriod(new DeploymentEventHandler(this, eventBus), 30 * 1000L);
             informers.add(deploymentInformer);
 
-            SharedIndexInformer<Service> serviceInformer = client.services().inNamespace(getNamespace()).inform();
+            SharedIndexInformer<Service> serviceInformer = client.services().inNamespace(getNamespace())
+                    .withLabels(labels).inform();
             serviceInformer.addEventHandlerWithResyncPeriod(new ServiceEventHandler(this, eventBus), 30 * 1000L);
             informers.add(serviceInformer);
 
-            SharedIndexInformer<Pod> podRunInformer = client.pods().inNamespace(getNamespace()).inform();
+            SharedIndexInformer<Pod> podRunInformer = client.pods().inNamespace(getNamespace())
+                    .withLabels(labels).inform();
             podRunInformer.addEventHandlerWithResyncPeriod(new PodEventHandler( this, eventBus), 30 * 1000L);
             informers.add(podRunInformer);
 
@@ -142,10 +145,14 @@ public class KubernetesStatusService implements HealthCheck {
         return namespace;
     }
 
-    public Deployment getDeployment(String name) {
-        try (KubernetesClient client = kubernetesClient()) {
-            return client.apps().deployments().inNamespace(getNamespace()).withName(name).get();
-        }
+    private Map<String, String> getRuntimeLabels() {
+        Map<String, String> labels = new HashMap<>();
+        labels.put(isOpenshift() ? "app.openshift.io/runtime" : "app.kubernetes.io/runtime", CAMEL_PREFIX);
+        return labels;
+    }
+
+    public boolean isOpenshift() {
+        return isOpenShift.isPresent() && isOpenShift.get();
     }
 
     public String getCluster() {
@@ -161,9 +168,5 @@ public class KubernetesStatusService implements HealthCheck {
                 .addToLimits("cpu", new Quantity(containerResources.get("limits.cpu")))
                 .addToLimits("memory", new Quantity(containerResources.get("limits.memory")))
                 .build();
-    }
-
-    public String getEnvironment() {
-        return environment;
     }
 }

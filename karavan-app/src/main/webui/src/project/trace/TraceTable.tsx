@@ -20,8 +20,11 @@ import {
     Button,
     EmptyState,
     EmptyStateIcon,
-    EmptyStateVariant,
-    EmptyStateHeader
+    EmptyStateVariant, Flex, FlexItem,
+    Panel,
+    PanelHeader,
+    Text,
+    Switch, TextContent, TextVariants, PageSection, EmptyStateHeader, Card, CardBody, Divider,
 } from '@patternfly/react-core';
 import '../../designer/karavan.css';
 import {RunnerInfoTraceModal} from "./RunnerInfoTraceModal";
@@ -38,6 +41,10 @@ import {
 import SearchIcon from "@patternfly/react-icons/dist/esm/icons/search-icon";
 import {useProjectStore} from "../../api/ProjectStore";
 import {shallow} from "zustand/shallow";
+import {InfoContainer} from "../dashboard/InfoContainer";
+import {InfoMemory} from "../dashboard/InfoMemory";
+import {InfoContext} from "../dashboard/InfoContext";
+import {ContainerStatus} from "../../api/ProjectModels";
 
 interface Props {
     containerName?: string

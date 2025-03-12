@@ -28,8 +28,7 @@ public class CamelStatusValue {
         route,
         trace,
         jvm,
-        source,
-        debug
+        source
     }
 
     Name name;

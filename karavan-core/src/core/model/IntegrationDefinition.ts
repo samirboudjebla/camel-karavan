@@ -121,7 +121,7 @@ export class Integration {
     kind: string = 'Integration' || 'Kamelet';
     metadata: Metadata = new Metadata();
     spec: Spec = new Spec();
-    type: 'crd' | 'plain' | 'kamelet' = 'plain';
+    type: 'crd' | 'plain' | 'kamelet' = 'crd';
 
     public constructor(init?: Partial<Integration>) {
         Object.assign(this, init);

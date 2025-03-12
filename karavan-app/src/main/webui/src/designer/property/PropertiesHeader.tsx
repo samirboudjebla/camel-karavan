@@ -25,12 +25,13 @@ import {
     MenuToggle,
     DropdownList,
     DropdownItem, Flex, Popover, FlexItem, Badge, ClipboardCopy,
-    Switch, Tooltip, Label, Button,
+    Switch,
 } from '@patternfly/react-core';
+import '../karavan.css';
 import './DslProperties.css';
 import "@patternfly/patternfly/patternfly.css";
 import {CamelUi} from "../utils/CamelUi";
-import {useDesignerStore} from "../DesignerStore";
+import {useDesignerStore, useSelectorStore} from "../DesignerStore";
 import {shallow} from "zustand/shallow";
 import {usePropertiesHook} from "./usePropertiesHook";
 import {CamelDisplayUtil} from "karavan-core/lib/api/CamelDisplayUtil";
@@ -46,7 +47,7 @@ interface Props {
 
 export function PropertiesHeader(props: Props) {
 
-    const {saveAsRoute, convertStep, onPropertyChange} = usePropertiesHook(props.designerType);
+    const {saveAsRoute, convertStep} = usePropertiesHook(props.designerType);
     const {openSelectorToReplaceFrom} = useRouteDesignerHook();
 
     const [selectedStep, dark] = useDesignerStore((s) => [s.selectedStep, s.dark], shallow)
@@ -55,13 +56,7 @@ export function PropertiesHeader(props: Props) {
     const [isHeadersExpanded, setIsHeadersExpanded] = useState<boolean>(false);
     const [isExchangePropertiesExpanded, setIsExchangePropertiesExpanded] = useState<boolean>(false);
     const [isMenuOpen, setMenuOpen] = useState<boolean>(false);
-    const [stepIsPoll, setStepIsPoll] = React.useState(false);
-    const [stepDynamic, setStepDynamic] = React.useState(false);
-
-    useEffect(() => {
-        setStepDynamic(selectedStep?.dslName === 'ToDynamicDefinition')
-        setStepIsPoll(selectedStep?.dslName === 'PollDefinition')
-    }, [])
+    const [isStepTypeOpen, setIsStepTypeOpen] = React.useState(false);
 
     useEffect(() => {
         setMenuOpen(false)
@@ -73,70 +68,67 @@ export function PropertiesHeader(props: Props) {
         const targetDslTitle = targetDsl?.replace("Definition", "");
         const showMenu = hasSteps || targetDsl !== undefined;
         return showMenu ?
-            <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'end', width: '100%'}}>
-                <Dropdown
-                    popperProps={{position: "end"}}
-                    isOpen={isMenuOpen}
-                    onSelect={() => {
-                    }}
-                    onOpenChange={(isOpen: boolean) => setMenuOpen(isOpen)}
-                    toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                        <MenuToggle
-                            className="header-menu-toggle"
-                            ref={toggleRef}
-                            aria-label="menu"
-                            variant="plain"
-                            onClick={() => setMenuOpen(!isMenuOpen)}
-                            isExpanded={isMenuOpen}
-                        >
-                            <EllipsisVIcon/>
-                        </MenuToggle>
-                    )}
-                >
-                    <DropdownList>
-                        {isFrom &&
-                            <DropdownItem key="changeFrom" onClick={(ev) => {
-                                ev.preventDefault()
-                                openSelectorToReplaceFrom((selectedStep as any).id)
+            <Dropdown
+                popperProps={{position: "end"}}
+                isOpen={isMenuOpen}
+                onSelect={() => {
+                }}
+                onOpenChange={(isOpen: boolean) => setMenuOpen(isOpen)}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                        className="header-menu-toggle"
+                        ref={toggleRef}
+                        aria-label="menu"
+                        variant="plain"
+                        onClick={() => setMenuOpen(!isMenuOpen)}
+                        isExpanded={isMenuOpen}
+                    >
+                        <EllipsisVIcon/>
+                    </MenuToggle>
+                )}
+            >
+                <DropdownList>
+                    {isFrom &&
+                        <DropdownItem key="changeFrom" onClick={(ev) => {
+                            ev.preventDefault()
+                            openSelectorToReplaceFrom((selectedStep as any).id)
+                            setMenuOpen(false);
+                        }}>
+                            Change From...
+                        </DropdownItem>}
+                    {hasSteps &&
+                        <DropdownItem key="saveStepsRoute" onClick={(ev) => {
+                            ev.preventDefault()
+                            if (selectedStep) {
+                                saveAsRoute(selectedStep, true);
                                 setMenuOpen(false);
-                            }}>
-                                Change From...
-                            </DropdownItem>}
-                        {hasSteps &&
-                            <DropdownItem key="saveStepsRoute" onClick={(ev) => {
-                                ev.preventDefault()
-                                if (selectedStep) {
-                                    saveAsRoute(selectedStep, true);
-                                    setMenuOpen(false);
-                                }
-                            }}>
-                                Save Steps to Route
-                            </DropdownItem>}
-                        {hasSteps && !isFrom &&
-                            <DropdownItem key="saveElementRoute" onClick={(ev) => {
-                                ev.preventDefault()
-                                if (selectedStep) {
-                                    saveAsRoute(selectedStep, false);
-                                    setMenuOpen(false);
-                                }
-                            }}>
-                                Save Element to Route
-                            </DropdownItem>}
-                        {targetDsl &&
-                            <DropdownItem key="convert"
-                                          onClick={(ev) => {
-                                              ev.preventDefault()
-                                              if (selectedStep) {
-                                                  convertStep(selectedStep, targetDsl);
-                                                  setMenuOpen(false);
-                                              }
-                                          }}>
-                                Convert to {targetDslTitle}
-                            </DropdownItem>}
-                    </DropdownList>
-                </Dropdown>
-            </div>
-            : <></>;
+                            }
+                        }}>
+                            Save Steps to Route
+                        </DropdownItem>}
+                    {hasSteps && !isFrom &&
+                        <DropdownItem key="saveElementRoute" onClick={(ev) => {
+                            ev.preventDefault()
+                            if (selectedStep) {
+                                saveAsRoute(selectedStep, false);
+                                setMenuOpen(false);
+                            }
+                        }}>
+                            Save Element to Route
+                        </DropdownItem>}
+                    {targetDsl &&
+                        <DropdownItem key="convert"
+                                      onClick={(ev) => {
+                                          ev.preventDefault()
+                                          if (selectedStep) {
+                                              convertStep(selectedStep, targetDsl);
+                                              setMenuOpen(false);
+                                          }
+                                      }}>
+                            Convert to {targetDslTitle}
+                        </DropdownItem>}
+                </DropdownList>
+            </Dropdown> : <></>;
     }
 
     function getExchangePropertiesSection(): React.JSX.Element {
@@ -146,35 +138,35 @@ export function PropertiesHeader(props: Props) {
                                isExpanded={isExchangePropertiesExpanded}>
                 <Flex className='component-headers' direction={{default: "column"}}>
                     {exchangeProperties.map((header, index, array) =>
-                        <Flex key={index}>
-                            <ClipboardCopy key={index} hoverTip="Copy" clickTip="Copied" variant="inline-compact"
-                                           isCode>
-                                {header.name}
-                            </ClipboardCopy>
-                            <FlexItem align={{default: 'alignRight'}}>
-                                <Popover
-                                    position={"left"}
-                                    headerContent={header.name}
-                                    bodyContent={header.description}
-                                    footerContent={
-                                        <Flex>
-                                            <Text component={TextVariants.p}>{header.javaType}</Text>
-                                            <FlexItem align={{default: 'alignRight'}}>
-                                                <Badge isRead>{header.label}</Badge>
-                                            </FlexItem>
-                                        </Flex>
-                                    }
-                                >
-                                    <button type="button" aria-label="More info" onClick={e => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }} className="pf-v5-c-form__group-label-help">
-                                        <HelpIcon/>
-                                    </button>
-                                </Popover>
-                            </FlexItem>
-                        </Flex>
-                    )}
+                            <Flex key={index}>
+                                <ClipboardCopy key={index} hoverTip="Copy" clickTip="Copied" variant="inline-compact"
+                                               isCode>
+                                    {header.name}
+                                </ClipboardCopy>
+                                <FlexItem align={{default: 'alignRight'}}>
+                                    <Popover
+                                        position={"left"}
+                                        headerContent={header.name}
+                                        bodyContent={header.description}
+                                        footerContent={
+                                            <Flex>
+                                                <Text component={TextVariants.p}>{header.javaType}</Text>
+                                                <FlexItem align={{default: 'alignRight'}}>
+                                                    <Badge isRead>{header.label}</Badge>
+                                                </FlexItem>
+                                            </Flex>
+                                        }
+                                    >
+                                        <button type="button" aria-label="More info" onClick={e => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                        }} className="pf-v5-c-form__group-label-help">
+                                            <HelpIcon/>
+                                        </button>
+                                    </Popover>
+                                </FlexItem>
+                            </Flex>
+                        )}
                 </Flex>
             </ExpandableSection>
         )
@@ -243,70 +235,24 @@ export function PropertiesHeader(props: Props) {
     const component = ComponentApi.findStepComponent(selectedStep);
     const groups = (isFrom || isPoll) ? ['consumer', 'common'] : ['producer', 'common'];
     const isKamelet = CamelUi.isKamelet(selectedStep);
-    const showSwitchers = !isFrom && selectedStep !== undefined && ['ToDefinition', 'PollDefinition', 'ToDynamicDefinition'].includes(selectedStep?.dslName);
+    const isStepComponent = !isFrom && selectedStep !== undefined && !isKamelet && ['ToDefinition', 'PollDefinition'].includes(selectedStep?.dslName);
 
-    function changeStepType(poll: boolean, dynamic: boolean) {
-        if (selectedStep) {
-            if  (poll) {
-                convertStep(selectedStep, 'PollDefinition');
-                setStepIsPoll(true);
-                setStepDynamic(false);
-            } else if (dynamic) {
-                convertStep(selectedStep, 'ToDynamicDefinition');
-                setStepIsPoll(false);
-                setStepDynamic(true);
-            } else {
-                convertStep(selectedStep, 'ToDefinition');
-                setStepIsPoll(false);
-                setStepDynamic(false);
-            }
-        }
-    }
-
-    function getStepTypeSwitch() {
-        const pollSupported = !component?.component.producerOnly;
-        return (<div style={{display: 'flex', flexDirection: 'row', justifyContent: 'end', width: '100%', gap: '10px'}}>
-                <Tooltip content='Send messages to a dynamic endpoint evaluated on-demand' position='top-end'>
-                    <Switch
-                        id="step-type-dynamic"
-                        label="Dynamic"
-                        isChecked={stepDynamic}
-                        onChange={(event, checked) => {
-                            changeStepType(stepIsPoll, checked)
-                        }}
-                        ouiaId="step-type-switch"
-                        isDisabled={stepIsPoll}
-                        isReversed
-                    />
-                </Tooltip>
-                {pollSupported && !isKamelet &&
-                    <Tooltip content='Simple Polling Consumer to obtain the additional data' position='top-end'>
-                        <Switch
-                            id="step-type-poll"
-                            label="Poll"
-                            isChecked={stepIsPoll}
-                            onChange={(event, checked) => {
-                                changeStepType(checked, stepDynamic)
-                            }}
-                            ouiaId="step-type-switch"
-                            isDisabled={stepDynamic}
-                            isReversed
-                        />
-                    </Tooltip>
-                }
-            </div>
-        )
-    }
-
-    function getIdInput() {
-        return (
-            (selectedStep as any)?.id !== undefined
-                ? <Label isEditable color='blue' isCompact onEditComplete={(event, newText) => onPropertyChange("id", newText)}>
-                    {(selectedStep as any)?.id || ''}
-                </Label>
-                : <Button variant="link" onClick={event => onPropertyChange("id", "rc-" + Math.floor(1000 + Math.random() * 9000).toString())}>
-                    Add Id
-                </Button>
+    function getComponentStepTypeSwitch() {
+        return (component?.component.producerOnly
+            ? <></>
+            : <Switch
+                id="step-type-switch"
+                label="Poll"
+                isChecked={isStepTypeOpen}
+                onChange={(event, checked) => {
+                    if (selectedStep) {
+                        convertStep(selectedStep, checked ? 'PollDefinition' : 'ToDefinition');
+                        setIsStepTypeOpen(checked);
+                    }
+                }}
+                ouiaId="step-type-switch"
+                isReversed
+            />
         )
     }
 
@@ -314,9 +260,8 @@ export function PropertiesHeader(props: Props) {
         <div className="headers">
             <div className="top">
                 <Title headingLevel="h1" size="md">{title}</Title>
-                {getIdInput()}
                 {getHeaderMenu()}
-                {showSwitchers && getStepTypeSwitch()}
+                {isStepComponent && getComponentStepTypeSwitch()}
             </div>
             <Text component={TextVariants.p}>{descriptionLines.at(0)}</Text>
             {descriptionLines.length > 1 && getDescriptionSection()}

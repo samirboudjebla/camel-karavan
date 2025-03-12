@@ -49,16 +49,9 @@ public class StatusResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/camel")
-    public List<CamelStatus> getCamelAllStatuses() {
-        return karavanCache.getCamelAllStatuses();
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/camel/{context}")
-    public List<CamelStatus> getCamelContextStatusesByName(@PathParam("context") String context) {
-        return karavanCache.getCamelStatusesByName(CamelStatusValue.Name.valueOf(context));
+    @Path("/camel/context")
+    public List<CamelStatus> getCamelContextStatusByEnv() {
+        return karavanCache.getCamelStatusesByEnv(CamelStatusValue.Name.context);
     }
 
     @DELETE

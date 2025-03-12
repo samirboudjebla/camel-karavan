@@ -28,7 +28,6 @@ public class Project {
         templates,
         kamelets,
         configuration,
-        services,
         normal,
     }
 
@@ -71,10 +70,6 @@ public class Project {
 
     public String getProjectId() {
         return projectId;
-    }
-
-    public String getGavPackageSuffix() {
-        return projectId.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 
     public void setProjectId(String projectId) {

@@ -15,7 +15,7 @@ spec:
                 - exception:
                     - "java.io.FileNotFoundException"
                     - "java.io.IOException"
-                  onWhen:
+                  on-when:
                     simple: "${body.size()} == 1"
                   steps:
                     - to: "log:io-error"

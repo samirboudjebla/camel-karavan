@@ -253,10 +253,6 @@ public class KaravanCache {
         return getPodContainerStatus(GroupedKey.create(projectId, env, containerName));
     }
 
-    public PodContainerStatus getPodContainerStatus(String containerName, String env) {
-        return getPodContainerStatuses(env).stream().filter(el -> Objects.equals(el.getContainerName(), containerName)).findFirst().orElse(null);
-    }
-
     public PodContainerStatus getPodContainerStatus(String key) {
         return podContainerStatuses.get(key);
     }
@@ -298,15 +294,11 @@ public class KaravanCache {
         return camelStatuses.get(key);
     }
 
-    public List<CamelStatus> getCamelStatusesByName(CamelStatusValue.Name name) {
+    public List<CamelStatus> getCamelStatusesByEnv(CamelStatusValue.Name name) {
         return getCopyCamelStatuses().stream().peek(cs -> {
             var values = cs.getStatuses();
             cs.setStatuses(values.stream().filter(v -> Objects.equals(v.getName(), name)).toList());
         }).toList();
-    }
-
-    public List<CamelStatus> getCamelAllStatuses() {
-        return getCopyCamelStatuses();
     }
 
     public List<CamelStatus> getCamelStatusesByProjectAndEnv(String projectId, String env) {
@@ -336,11 +328,11 @@ public class KaravanCache {
     }
 
     public List<PodContainerStatus> getLoadedDevModeStatuses() {
-        return getCopyPodContainerStatuses().stream().filter(el -> Objects.equals(el.getType(), ContainerType.devmode) && Objects.equals(el.getCodeLoaded(), true)).toList();
+        return getCopyPodContainerStatuses().stream().filter(el -> Objects.equals(el.getType(), PodContainerStatus.ContainerType.devmode) && Objects.equals(el.getCodeLoaded(), true)).toList();
     }
 
     public List<PodContainerStatus> getDevModeStatuses() {
-        return getCopyPodContainerStatuses().stream().filter(el -> Objects.equals(el.getType(), ContainerType.devmode)).toList();
+        return getCopyPodContainerStatuses().stream().filter(el -> Objects.equals(el.getType(), PodContainerStatus.ContainerType.devmode)).toList();
     }
 
     public List<PodContainerStatus> getContainerStatusByEnv(String env) {

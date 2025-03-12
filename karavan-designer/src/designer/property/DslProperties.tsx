@@ -14,20 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
-    Button,
-    ExpandableSection,
     Form,
     Text,
-    TextInputGroup,
-    TextInputGroupMain,
-    TextInputGroupUtilities,
-    TextVariants,
     Title,
-    ToggleGroup,
-    ToggleGroupItem,
-    Tooltip,
+    TextVariants,
+    ExpandableSection,
+    Button,
+    Tooltip, ToggleGroupItem, ToggleGroup, TextInput,
 } from '@patternfly/react-core';
 import '../karavan.css';
 import './DslProperties.css';
@@ -46,8 +41,6 @@ import {CamelDisplayUtil} from "karavan-core/lib/api/CamelDisplayUtil";
 import {PropertiesHeader} from "./PropertiesHeader";
 import {PropertyUtil} from "./property/PropertyUtil";
 import {usePropertiesStore} from "./PropertyStore";
-import TimesIcon from "@patternfly/react-icons/dist/esm/icons/times-icon";
-import {RouteTemplateDefinition} from "karavan-core/lib/model/CamelDefinition";
 
 interface Props {
     designerType: 'routes' | 'rest' | 'beans'
@@ -66,31 +59,13 @@ export function DslProperties(props: Props) {
     } =
         usePropertiesHook(props.designerType);
 
-    const [selectedStep, dark, setParameterPlaceholders]
-        = useDesignerStore((s) => [s.selectedStep, s.dark, s.setParameterPlaceholders], shallow)
+    const [selectedStep, dark]
+        = useDesignerStore((s) => [s.selectedStep, s.dark], shallow)
 
-    const [propertyFilter, changedOnly, requiredOnly, setChangedOnly, sensitiveOnly, setSensitiveOnly, setPropertyFilter, setRequiredOnly]
-        = usePropertiesStore((s) => [s.propertyFilter, s.changedOnly, s.requiredOnly, s.setChangedOnly, s.sensitiveOnly, s.setSensitiveOnly, s.setPropertyFilter, s.setRequiredOnly], shallow)
+    const [propertyFilter, changedOnly, requiredOnly, setChangedOnly, setPropertyFilter, setRequiredOnly]
+        = usePropertiesStore((s) => [s.propertyFilter, s.changedOnly, s.requiredOnly, s.setChangedOnly, s.setPropertyFilter, s.setRequiredOnly], shallow)
 
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-
-    useEffect(() => {
-        setRequiredOnly(false);
-        setChangedOnly(false);
-        setSensitiveOnly(false);
-        setPropertyFilter('');
-        getRouteTemplateParameters()
-    }, [selectedStep?.uuid])
-
-    function getRouteTemplateParameters() {
-        if (selectedStep) {
-            const root = CamelDefinitionApiExt.findTopRouteElement(integration, selectedStep.uuid);
-            if ('RouteTemplateDefinition' === root?.dslName) {
-                const paramPlaceholders: [string, string][] = (root as RouteTemplateDefinition).parameters?.map(p => [p.name, p.description ||'']) || [];
-                setParameterPlaceholders(paramPlaceholders);
-            }
-        }
-    }
 
     function getClonableElementHeader(): React.JSX.Element {
         const title = selectedStep && CamelDisplayUtil.getTitle(selectedStep);
@@ -118,12 +93,10 @@ export function DslProperties(props: Props) {
     function getProperties(): PropertyMeta[] {
         const dslName = selectedStep?.dslName;
         return CamelDefinitionApiExt.getElementProperties(dslName)
-            .filter((p: PropertyMeta) => p.name !== 'uri') // do not show uri
-            .filter((p: PropertyMeta) => p.name !== 'id') // do not show id
+            .filter((p: PropertyMeta) => !(p.name === 'uri' && dslName !== 'ToDynamicDefinition')) // show uri only to Dynamic To
             // .filer((p: PropertyMeta) => (showAdvanced && p.label.includes('advanced')) || (!showAdvanced && !p.label.includes('advanced')))
-            .filter((p: PropertyMeta) => !p.isObject || (p.isObject && !CamelUi.dslHasSteps(p.type)) || (p.name === 'onWhen'))
-            .filter((p: PropertyMeta) => !(dslName === 'RestDefinition' && ['get', 'post', 'put', 'patch', 'delete', 'head'].includes(p.name)))
-            .filter((p: PropertyMeta) => !(dslName === 'RouteTemplateDefinition' && ['route', 'beans'].includes(p.name)));
+            .filter((p: PropertyMeta) => !p.isObject || (p.isObject && !CamelUi.dslHasSteps(p.type)) || (dslName === 'CatchDefinition' && p.name === 'onWhen'))
+            .filter((p: PropertyMeta) => !(dslName === 'RestDefinition' && ['get', 'post', 'put', 'patch', 'delete', 'head'].includes(p.name)));
         // .filter((p: PropertyMeta) => dslName && !(['RestDefinition', 'GetDefinition', 'PostDefinition', 'PutDefinition', 'PatchDefinition', 'DeleteDefinition', 'HeadDefinition'].includes(dslName) && ['param', 'responseMessage'].includes(p.name))) // TODO: configure this properties
     }
 
@@ -155,10 +128,7 @@ export function DslProperties(props: Props) {
             propertyMetas = propertyMetas.filter(p => p.name === 'parameters' || p.required);
         }
         if (changedOnly) {
-            propertyMetas = propertyMetas.filter(p => p.name === 'parameters' || PropertyUtil.hasDslPropertyValueChanged(p, getPropertyValue(p)));
-        }
-        if (sensitiveOnly) {
-            propertyMetas = propertyMetas.filter(p => p.name === 'parameters' || p.secret);
+            propertyMetas = propertyMetas.filter(p =>p.name === 'parameters' || PropertyUtil.hasDslPropertyValueChanged(p, getPropertyValue(p)));
         }
         return propertyMetas
     }
@@ -172,7 +142,7 @@ export function DslProperties(props: Props) {
     function getPropertySelector() {
         return (
             <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '3px', pointerEvents: 'initial', opacity: '1'}}>
-                <ToggleGroup className='property-selector' aria-label="properties selctor">
+                <ToggleGroup aria-label="properties selctor">
                     <ToggleGroupItem
                         text="Required"
                         buttonId="requiredOnly"
@@ -185,35 +155,18 @@ export function DslProperties(props: Props) {
                         isSelected={changedOnly}
                         onChange={(_, selected) => setChangedOnly(selected)}
                     />
-                    <ToggleGroupItem
-                        text="Sensitive"
-                        buttonId="sensitiveOnly"
-                        isSelected={sensitiveOnly}
-                        onChange={(_, selected) => setSensitiveOnly(selected)}
-                    />
                 </ToggleGroup>
-                <TextInputGroup>
-                    <TextInputGroupMain
-                        value={propertyFilter}
-                        placeholder="filter by name"
-                        type="text"
-                        autoComplete={"off"}
-                        autoFocus={true}
-                        onChange={(_event, value) => setPropertyFilter(value)}
-                        aria-label="filter by name"
-                    />
-                    <TextInputGroupUtilities>
-                        <Button variant="plain" onClick={_ => setPropertyFilter('')}>
-                            <TimesIcon aria-hidden={true}/>
-                        </Button>
-                    </TextInputGroupUtilities>
-                </TextInputGroup>
+                <TextInput
+                    placeholder="filter by name"
+                    value={propertyFilter}
+                    onChange={(_, value) => setPropertyFilter(value)}
+                />
             </div>
         )
     }
 
     function getPropertySelectorChanged(): boolean {
-        return requiredOnly || changedOnly || sensitiveOnly || propertyFilter?.trim().length > 0;
+        return requiredOnly || changedOnly || propertyFilter?.trim().length > 0;
     }
 
     function getShowExpanded(): boolean {
@@ -238,7 +191,7 @@ export function DslProperties(props: Props) {
                 }
                 {selectedStep && propertiesAdvanced.length > 0 &&
                     <ExpandableSection
-                        toggleText={'Processors advanced properties'}
+                        toggleText={'EIP advanced properties'}
                         onToggle={(_event, isExpanded) => setShowAdvanced(!showAdvanced)}
                         isExpanded={getShowExpanded()}>
                         <div className="parameters">

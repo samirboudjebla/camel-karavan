@@ -27,7 +27,6 @@ public class DeploymentStatus {
     Integer replicas;
     Integer readyReplicas;
     Integer unavailableReplicas;
-    ContainerType type;
 
     public DeploymentStatus() {
     }
@@ -43,7 +42,7 @@ public class DeploymentStatus {
         this.unavailableReplicas = 0;
     }
 
-    public DeploymentStatus(String projectId, String namespace, String cluster, String env, String image, Integer replicas, Integer readyReplicas, Integer unavailableReplicas, ContainerType type) {
+    public DeploymentStatus(String projectId, String namespace, String cluster, String env, String image, Integer replicas, Integer readyReplicas, Integer unavailableReplicas) {
         this.projectId = projectId;
         this.namespace = namespace;
         this.env = env;
@@ -52,7 +51,6 @@ public class DeploymentStatus {
         this.replicas = replicas;
         this.readyReplicas = readyReplicas;
         this.unavailableReplicas = unavailableReplicas;
-        this.type = type;
     }
 
     public String getProjectId() {
@@ -119,15 +117,7 @@ public class DeploymentStatus {
         this.cluster = cluster;
     }
 
-    public ContainerType getType() {
-        return type;
-    }
-
-    public void setType(ContainerType type) {
-        this.type = type;
-    }
-
     public DeploymentStatus copy() {
-        return new DeploymentStatus(projectId, namespace, cluster, env, image, replicas, readyReplicas, unavailableReplicas, type);
+        return new DeploymentStatus(projectId, namespace, cluster, env, image, replicas, readyReplicas, unavailableReplicas);
     }
 }

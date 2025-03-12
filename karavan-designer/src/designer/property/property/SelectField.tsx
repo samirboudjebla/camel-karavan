@@ -68,8 +68,8 @@ export function SelectField(props: Props) {
             // If no option matches the filter exactly, display creation option
             if (!initialSelectOptions.some((option) => option.value === filterValue)) {
                 newSelectOptions = [...newSelectOptions, {
-                    children: `"${filterValue}"`,
-                    value: filterValue,
+                    children: `Create new option "${filterValue}"`,
+                    value: filterValue
                 }];
             }
 
@@ -78,10 +78,11 @@ export function SelectField(props: Props) {
                 setIsOpen(true);
             }
         }
+
         setSelectOptions(newSelectOptions);
     }, [filterValue]);
 
-    const createItemId = (value: any) => `select-typeahead-${value?.replace(' ', '-')}`;
+    const createItemId = (value: any) => `select-typeahead-${value.replace(' ', '-')}`;
 
     const setActiveAndFocusedItem = (itemIndex: number) => {
         setFocusedItemIndex(itemIndex);
@@ -109,6 +110,8 @@ export function SelectField(props: Props) {
 
     const selectOption = (value: string | number, content: string | number) => {
         // eslint-disable-next-line no-console
+        console.log('selected', content);
+
         setInputValue(String(content));
         setFilterValue('');
         setSelected(String(value));
@@ -118,6 +121,7 @@ export function SelectField(props: Props) {
 
     const onSelect = (_event: React.MouseEvent<Element, MouseEvent> | undefined, value: string | number | undefined) => {
         let initialSelectOptions = props.selectOptions;
+        console.log("onselect", value)
         if (value) {
             if (value === CREATE_NEW) {
                 if (!initialSelectOptions.some((item) => item.children === filterValue)) {
@@ -226,7 +230,6 @@ export function SelectField(props: Props) {
         setFilterValue('');
         resetActiveAndFocusedItem();
         textInputRef?.current?.focus();
-        props.onChange(props.name, '');
     };
 
     const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (

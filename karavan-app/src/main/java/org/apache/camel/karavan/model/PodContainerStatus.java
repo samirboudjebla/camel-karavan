@@ -18,9 +18,7 @@
 package org.apache.camel.karavan.model;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PodContainerStatus {
 
@@ -31,6 +29,15 @@ public class PodContainerStatus {
         paused,
         exited,
         dead
+    }
+
+    public enum ContainerType {
+        internal,
+        devmode,
+        devservice,
+        project,
+        build,
+        unknown,
     }
 
     public enum Command {
@@ -60,9 +67,8 @@ public class PodContainerStatus {
     String podIP;
     String camelRuntime;
     String commit;
-    Map<String, String> labels;
 
-    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, String phase, Boolean codeLoaded, Boolean inTransit, String initDate, String podIP, String camelRuntime, String commit, Map<String, String> labels) {
+    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, String phase, Boolean codeLoaded, Boolean inTransit, String initDate, String podIP, String camelRuntime, String commit) {
         this.projectId = projectId;
         this.containerName = containerName;
         this.containerId = containerId;
@@ -83,7 +89,6 @@ public class PodContainerStatus {
         this.podIP = podIP;
         this.camelRuntime = camelRuntime;
         this.commit = commit;
-        this.labels = labels;
     }
 
     public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, String phase, Boolean codeLoaded, Boolean inTransit, String initDate, String podIP, String camelRuntime) {
@@ -108,7 +113,7 @@ public class PodContainerStatus {
         this.camelRuntime = camelRuntime;
     }
 
-    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, String phase, Boolean codeLoaded, Boolean inTransit, String initDate, Map<String, String> labels) {
+    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, String phase, Boolean codeLoaded, Boolean inTransit, String initDate) {
         this.projectId = projectId;
         this.containerName = containerName;
         this.containerId = containerId;
@@ -126,10 +131,9 @@ public class PodContainerStatus {
         this.codeLoaded = codeLoaded;
         this.inTransit = inTransit;
         this.initDate = initDate;
-        this.labels = labels;
     }
 
-    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, Boolean codeLoaded, Boolean inTransit, String camelRuntime, Map<String, String> labels) {
+    public PodContainerStatus(String projectId, String containerName, String containerId, String image, List<ContainerPort> ports, String env, ContainerType type, String memoryInfo, String cpuInfo, String created, String finished, List<Command> commands, String state, Boolean codeLoaded, Boolean inTransit, String camelRuntime) {
         this.projectId = projectId;
         this.containerName = containerName;
         this.containerId = containerId;
@@ -147,7 +151,6 @@ public class PodContainerStatus {
         this.camelRuntime = camelRuntime;
         this.inTransit = inTransit;
         this.initDate = Instant.now().toString();
-        this.labels = labels;
     }
 
     public PodContainerStatus(String containerName, List<Command> commands, String projectId, String env, ContainerType type, String memoryInfo, String cpuInfo, String created) {
@@ -173,16 +176,16 @@ public class PodContainerStatus {
     }
 
     public static PodContainerStatus createDevMode(String projectId, String env) {
-        return new PodContainerStatus(projectId, projectId, null, null, null, env, ContainerType.devmode, null, null, null, null, List.of(Command.run), null, false, false, "", new HashMap<>());
+        return new PodContainerStatus(projectId, projectId, null, null, null, env, ContainerType.devmode, null, null, null, null, List.of(Command.run), null, false, false, "");
     }
 
     public static PodContainerStatus createByType(String name, String env, ContainerType type) {
-        return new PodContainerStatus(name, name, null, null, null, env, type, null, null, null, null, List.of(Command.run), null, false, false, "", new HashMap<>());
+        return new PodContainerStatus(name, name, null, null, null, env, type, null, null, null, null, List.of(Command.run), null, false, false, "");
     }
 
-    public static PodContainerStatus createWithId(String projectId, String containerName, String env, String containerId, String image, List<ContainerPort> ports, ContainerType type, List<Command> commands, String status, String created, String camelRuntime, Map<String, String> labels) {
+    public static PodContainerStatus createWithId(String projectId, String containerName, String env, String containerId, String image, List<ContainerPort> ports, ContainerType type, List<Command> commands, String status, String created, String camelRuntime) {
         return new PodContainerStatus(projectId, containerName, containerId, image, ports, env, type,
-                null, null, created, null,  commands, status, false, false, camelRuntime, labels);
+                null, null, created, null,  commands, status, false, false, camelRuntime);
     }
 
     public PodContainerStatus() {
@@ -190,7 +193,7 @@ public class PodContainerStatus {
 
     public PodContainerStatus copy() {
         return new PodContainerStatus(
-                projectId, containerName, containerId, image, ports, env, type, memoryInfo, cpuInfo, created, finished, commands, state, phase, codeLoaded, inTransit, initDate, podIP, camelRuntime, commit, labels
+                projectId, containerName, containerId, image, ports, env, type, memoryInfo, cpuInfo, created, finished, commands, state, phase, codeLoaded, inTransit, initDate, podIP, camelRuntime, commit
         );
     }
 
@@ -354,14 +357,6 @@ public class PodContainerStatus {
         this.commit = commit;
     }
 
-    public Map<String, String> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(Map<String, String> labels) {
-        this.labels = labels;
-    }
-
     @Override
     public String toString() {
         return "ContainerStatus{" +
@@ -384,7 +379,6 @@ public class PodContainerStatus {
                 ", initDate='" + initDate + '\'' +
                 ", podIP='" + podIP + '\'' +
                 ", commit='" + commit + '\'' +
-                ", labels='" + labels + '\'' +
                 '}';
     }
 }

@@ -84,11 +84,4 @@ public class MetadataResources {
     public String getSpiBeans() {
         return codeService.getResourceFile("/metadata/spiBeans.json");
     }
-
-    @GET
-    @Path("/mainConfiguration")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getMainConfiguration() {
-        return codeService.getResourceFile("/metadata/camel-main-configuration-metadata.json");
-    }
 }

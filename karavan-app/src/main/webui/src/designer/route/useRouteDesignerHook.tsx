@@ -45,9 +45,8 @@ export function useRouteDesignerHook() {
         [s.selectedUuids, s.clipboardSteps, s.shiftKeyPressed,
             s.setShowDeleteConfirmation, s.setDeleteMessage, s.selectedStep, s.setSelectedStep, s.setSelectedUuids, s.setClipboardSteps, s.setShiftKeyPressed,
             s.width, s.height, s.dark], shallow)
-    const [setParentId, setShowSelector, setSelectorTabIndex, setParentDsl, setShowSteps, setSelectedPosition, routeId, setRouteId, isRouteTemplate, setIsRouteTemplate] = useSelectorStore((s) =>
-        [s.setParentId, s.setShowSelector, s.setSelectorTabIndex, s.setParentDsl, s.setShowSteps, s.setSelectedPosition, s.routeId, s.setRouteId,
-        s.isRouteTemplate, s.setIsRouteTemplate], shallow)
+    const [setParentId, setShowSelector, setSelectorTabIndex, setParentDsl, setShowSteps, setSelectedPosition, routeId, setRouteId] = useSelectorStore((s) =>
+        [s.setParentId, s.setShowSelector, s.setSelectorTabIndex, s.setParentDsl, s.setShowSteps, s.setSelectedPosition, s.routeId, s.setRouteId], shallow)
 
     function onCommand(command: Command, printerRef: React.MutableRefObject<HTMLDivElement | null>) {
         switch (command.command) {
@@ -103,8 +102,6 @@ export function useRouteDesignerHook() {
             message = 'Deleting the first element will delete the entire route!';
         } else if (ce.dslName === 'RouteDefinition') {
             message = 'Delete route?';
-        } else if (ce.dslName === 'RouteTemplateDefinition') {
-            message = 'Delete route template?';
         } else if (ce.dslName === 'RouteConfigurationDefinition') {
             message = 'Delete route configuration?';
         } else {
@@ -182,14 +179,6 @@ export function useRouteDesignerHook() {
         }
     }
 
-    function copyPasteStep(step: CamelElement, parentUuid: string, position: number): void {
-        if (step) {
-            const clone = CamelUtil.cloneStep(step, true);
-            (clone as any).id = (clone as any).stepName + "-" + clone.uuid.substring(0,4);
-            addStep(clone, parentUuid, position + 1);
-        }
-    }
-
     function copyToClipboard(): void {
         const steps: CamelElement[] = []
         selectedUuids.forEach(selectedUuid => {
@@ -233,13 +222,12 @@ export function useRouteDesignerHook() {
         }
     }
 
-    const openSelector = (parentId: string | undefined, parentDsl: string | undefined, showSteps: boolean = true, position?: number | undefined, routeTemplate?: boolean) => {
+    const openSelector = (parentId: string | undefined, parentDsl: string | undefined, showSteps: boolean = true, position?: number | undefined) => {
         setShowSelector(true);
         setParentId(parentId || '');
         setParentDsl(parentDsl);
         setShowSteps(showSteps);
         setSelectedPosition(position);
-        setIsRouteTemplate(routeTemplate === true);
         setSelectorTabIndex((parentId === undefined && parentDsl === undefined) ? 'components' : 'eip');
     }
 
@@ -256,9 +244,7 @@ export function useRouteDesignerHook() {
     function onDslSelect(dsl: DslMetaModel, parentId: string, position?: number | undefined) {
         switch (dsl.dsl) {
             case 'FromDefinition' :
-                if (isRouteTemplate) {
-                    createRouteTemplate(dsl)
-                } else if (routeId !== undefined) {
+                if (routeId !== undefined) {
                     replaceFrom(dsl)
                 } else {
                     const nodePrefixId = isKamelet() ? integration.metadata.name : 'route-' + uuidv4().substring(0, 3);
@@ -329,19 +315,6 @@ export function useRouteDesignerHook() {
         setSelectedUuids([routeConfiguration.uuid]);
     }
 
-    const createRouteTemplate = (dsl: DslMetaModel) => {
-        const clone = CamelUtil.cloneIntegration(integration);
-        const route = CamelDefinitionApi.createRouteDefinition({
-            from: new FromDefinition({uri: dsl.uri}),
-            nodePrefixId: 'route-' + uuidv4().substring(0, 3)
-        });
-        const routeTemplate = CamelDefinitionApi.createRouteTemplateDefinition({route: route});
-        const i = CamelDefinitionApiExt.addRouteTemplateToIntegration(clone, routeTemplate);
-        setIntegration(i, false);
-        setSelectedStep(routeTemplate);
-        setSelectedUuids([routeTemplate.uuid]);
-    }
-
     const addStep = (step: CamelElement, parentId: string, position?: number | undefined) => {
         const clone = CamelUtil.cloneIntegration(integration);
         const i = CamelDefinitionApiExt.addStepToIntegration(clone, step, parentId, position);
@@ -405,6 +378,6 @@ export function useRouteDesignerHook() {
     return {
         deleteElement, selectElement, moveElement, onShowDeleteConfirmation, onDslSelect, openSelector,
         createRouteConfiguration, onCommand, handleKeyDown, handleKeyUp, unselectElement, isKamelet, isSourceKamelet,
-        isActionKamelet, isSinkKamelet, openSelectorToReplaceFrom, createRouteTemplate, copyPasteStep
+        isActionKamelet, isSinkKamelet, openSelectorToReplaceFrom
     }
 }

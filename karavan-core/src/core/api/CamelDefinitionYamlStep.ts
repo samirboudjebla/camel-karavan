@@ -23,7 +23,6 @@ import {
 
     ProcessorDefinition,
     BeansDeserializer,
-    DataFormatsDefinitionDeserializer,
     ErrorHandlerDeserializer,
     OutputAwareFromDefinition,
     AggregateDefinition,
@@ -63,7 +62,6 @@ import {
     OnCompletionDefinition,
     OnExceptionDefinition,
     OnFallbackDefinition,
-    OnWhenDefinition,
     OptimisticLockRetryPolicyDefinition,
     OtherwiseDefinition,
     OutputDefinition,
@@ -120,8 +118,6 @@ import {
     ThrowExceptionDefinition,
     ToDefinition,
     ToDynamicDefinition,
-    TokenizerDefinition,
-    TokenizerImplementationDefinition,
     TransactedDefinition,
     TransformDefinition,
     TryDefinition,
@@ -129,6 +125,7 @@ import {
     ValidateDefinition,
     ValueDefinition,
     WhenDefinition,
+    WhenSkipSendToEndpointDefinition,
     WireTapDefinition,
     BeanConstructorDefinition,
     BeanConstructorsDefinition,
@@ -151,7 +148,6 @@ import {
     FhirJsonDataFormat,
     FhirXmlDataFormat,
     FlatpackDataFormat,
-    FuryDataFormat,
     GrokDataFormat,
     GzipDeflaterDataFormat,
     HL7DataFormat,
@@ -166,7 +162,6 @@ import {
     ParquetAvroDataFormat,
     ProtobufDataFormat,
     RssDataFormat,
-    SmooksDataFormat,
     SoapDataFormat,
     SwiftMtDataFormat,
     SwiftMxDataFormat,
@@ -245,12 +240,7 @@ import {
     RestSecuritiesDefinition,
     RestsDefinition,
     SecurityDefinition,
-    LangChain4jCharacterTokenizerDefinition,
-    LangChain4jLineTokenizerDefinition,
-    LangChain4jParagraphTokenizerDefinition,
-    LangChain4jSentenceTokenizerDefinition,
     LangChain4jTokenizerDefinition,
-    LangChain4jWordTokenizerDefinition,
     CustomTransformerDefinition,
     DataFormatTransformerDefinition,
     EndpointTransformerDefinition,
@@ -312,6 +302,13 @@ export class CamelDefinitionYamlStep {
                def.recipientList = CamelDefinitionYamlStep.readRecipientListDefinition(element.recipientList); 
             } 
         } 
+        if (element?.when !== undefined) { 
+            if (Array.isArray(element.when)) { 
+               def.when = CamelDefinitionYamlStep.readWhenDefinition(element.when[0]); 
+            } else { 
+               def.when = CamelDefinitionYamlStep.readWhenDefinition(element.when); 
+            } 
+        } 
         if (element?.setHeader !== undefined) { 
             if (Array.isArray(element.setHeader)) { 
                def.setHeader = CamelDefinitionYamlStep.readSetHeaderDefinition(element.setHeader[0]); 
@@ -347,6 +344,13 @@ export class CamelDefinitionYamlStep {
                def.marshal = CamelDefinitionYamlStep.readMarshalDefinition(element.marshal); 
             } 
         } 
+        if (element?.onFallback !== undefined) { 
+            if (Array.isArray(element.onFallback)) { 
+               def.onFallback = CamelDefinitionYamlStep.readOnFallbackDefinition(element.onFallback[0]); 
+            } else { 
+               def.onFallback = CamelDefinitionYamlStep.readOnFallbackDefinition(element.onFallback); 
+            } 
+        } 
         if (element?.circuitBreaker !== undefined) { 
             if (Array.isArray(element.circuitBreaker)) { 
                def.circuitBreaker = CamelDefinitionYamlStep.readCircuitBreakerDefinition(element.circuitBreaker[0]); 
@@ -380,6 +384,13 @@ export class CamelDefinitionYamlStep {
                def.bean = CamelDefinitionYamlStep.readBeanDefinition(element.bean[0]); 
             } else { 
                def.bean = CamelDefinitionYamlStep.readBeanDefinition(element.bean); 
+            } 
+        } 
+        if (element?.otherwise !== undefined) { 
+            if (Array.isArray(element.otherwise)) { 
+               def.otherwise = CamelDefinitionYamlStep.readOtherwiseDefinition(element.otherwise[0]); 
+            } else { 
+               def.otherwise = CamelDefinitionYamlStep.readOtherwiseDefinition(element.otherwise); 
             } 
         } 
         if (element?.sort !== undefined) { 
@@ -422,6 +433,13 @@ export class CamelDefinitionYamlStep {
                def.stop = CamelDefinitionYamlStep.readStopDefinition(element.stop[0]); 
             } else { 
                def.stop = CamelDefinitionYamlStep.readStopDefinition(element.stop); 
+            } 
+        } 
+        if (element?.whenSkipSendToEndpoint !== undefined) { 
+            if (Array.isArray(element.whenSkipSendToEndpoint)) { 
+               def.whenSkipSendToEndpoint = CamelDefinitionYamlStep.readWhenSkipSendToEndpointDefinition(element.whenSkipSendToEndpoint[0]); 
+            } else { 
+               def.whenSkipSendToEndpoint = CamelDefinitionYamlStep.readWhenSkipSendToEndpointDefinition(element.whenSkipSendToEndpoint); 
             } 
         } 
         if (element?.setProperty !== undefined) { 
@@ -648,13 +666,6 @@ export class CamelDefinitionYamlStep {
                def.multicast = CamelDefinitionYamlStep.readMulticastDefinition(element.multicast); 
             } 
         } 
-        if (element?.tokenizer !== undefined) { 
-            if (Array.isArray(element.tokenizer)) { 
-               def.tokenizer = CamelDefinitionYamlStep.readTokenizerDefinition(element.tokenizer[0]); 
-            } else { 
-               def.tokenizer = CamelDefinitionYamlStep.readTokenizerDefinition(element.tokenizer); 
-            } 
-        } 
         if (element?.filter !== undefined) { 
             if (Array.isArray(element.filter)) { 
                def.filter = CamelDefinitionYamlStep.readFilterDefinition(element.filter[0]); 
@@ -683,6 +694,13 @@ export class CamelDefinitionYamlStep {
                def.wireTap = CamelDefinitionYamlStep.readWireTapDefinition(element.wireTap); 
             } 
         } 
+        if (element?.langChain4j !== undefined) { 
+            if (Array.isArray(element.langChain4j)) { 
+               def.langChain4j = CamelDefinitionYamlStep.readLangChain4jTokenizerDefinition(element.langChain4j[0]); 
+            } else { 
+               def.langChain4j = CamelDefinitionYamlStep.readLangChain4jTokenizerDefinition(element.langChain4j); 
+            } 
+        } 
         if (element?.step !== undefined) { 
             if (Array.isArray(element.step)) { 
                def.step = CamelDefinitionYamlStep.readStepDefinition(element.step[0]); 
@@ -704,13 +722,6 @@ export class CamelDefinitionYamlStep {
     static readBeansDeserializer = (element: any): BeansDeserializer => {
         
         let def = element ? new BeansDeserializer({...element}) : new BeansDeserializer();
-
-        return def;
-    }
-
-    static readDataFormatsDefinitionDeserializer = (element: any): DataFormatsDefinitionDeserializer => {
-        
-        let def = element ? new DataFormatsDefinitionDeserializer({...element}) : new DataFormatsDefinitionDeserializer();
 
         return def;
     }
@@ -835,9 +846,9 @@ export class CamelDefinitionYamlStep {
         let def = element ? new CatchDefinition({...element}) : new CatchDefinition();
         if (element?.onWhen !== undefined) { 
             if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen[0]); 
             } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen); 
             } 
         } 
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
@@ -1303,13 +1314,6 @@ export class CamelDefinitionYamlStep {
     static readInterceptDefinition = (element: any): InterceptDefinition => {
         
         let def = element ? new InterceptDefinition({...element}) : new InterceptDefinition();
-        if (element?.onWhen !== undefined) { 
-            if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
-            } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
-            } 
-        } 
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
 
         return def;
@@ -1319,13 +1323,6 @@ export class CamelDefinitionYamlStep {
         
         let def = element ? new InterceptFromDefinition({...element}) : new InterceptFromDefinition();
         def = ComponentApi.parseElementUri(def);
-        if (element?.onWhen !== undefined) { 
-            if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
-            } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
-            } 
-        } 
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
 
         return def;
@@ -1335,13 +1332,6 @@ export class CamelDefinitionYamlStep {
         if (element && typeof element === 'string') element = {uri: element};
         let def = element ? new InterceptSendToEndpointDefinition({...element}) : new InterceptSendToEndpointDefinition();
         def = ComponentApi.parseElementUri(def);
-        if (element?.onWhen !== undefined) { 
-            if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
-            } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
-            } 
-        } 
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
 
         return def;
@@ -1531,13 +1521,6 @@ export class CamelDefinitionYamlStep {
                def.rss = CamelDefinitionYamlStep.readRssDataFormat(element.rss); 
             } 
         } 
-        if (element?.smooks !== undefined) { 
-            if (Array.isArray(element.smooks)) { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks[0]); 
-            } else { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks); 
-            } 
-        } 
         if (element?.mimeMultipart !== undefined) { 
             if (Array.isArray(element.mimeMultipart)) { 
                def.mimeMultipart = CamelDefinitionYamlStep.readMimeMultipartDataFormat(element.mimeMultipart[0]); 
@@ -1620,13 +1603,6 @@ export class CamelDefinitionYamlStep {
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson[0]); 
             } else { 
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson); 
-            } 
-        } 
-        if (element?.fury !== undefined) { 
-            if (Array.isArray(element.fury)) { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury[0]); 
-            } else { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury); 
             } 
         } 
         if (element?.custom !== undefined) { 
@@ -1758,9 +1734,9 @@ export class CamelDefinitionYamlStep {
         let def = element ? new OnCompletionDefinition({...element}) : new OnCompletionDefinition();
         if (element?.onWhen !== undefined) { 
             if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen[0]); 
             } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen); 
             } 
         } 
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
@@ -1794,9 +1770,9 @@ export class CamelDefinitionYamlStep {
         } 
         if (element?.onWhen !== undefined) { 
             if (Array.isArray(element.onWhen)) { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen[0]); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen[0]); 
             } else { 
-               def.onWhen = CamelDefinitionYamlStep.readOnWhenDefinition(element.onWhen); 
+               def.onWhen = CamelDefinitionYamlStep.readWhenDefinition(element.onWhen); 
             } 
         } 
         if (element?.continued !== undefined) { 
@@ -1815,24 +1791,6 @@ export class CamelDefinitionYamlStep {
         
         let def = element ? new OnFallbackDefinition({...element}) : new OnFallbackDefinition();
         def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
-
-        return def;
-    }
-
-    static readOnWhenDefinition = (element: any): OnWhenDefinition => {
-        
-        let def = element ? new OnWhenDefinition({...element}) : new OnWhenDefinition();
-        if (element?.expression !== undefined) { 
-            def.expression = CamelDefinitionYamlStep.readExpressionDefinition(element.expression); 
-        } else {
-            const languageName: string | undefined = Object.keys(element).filter(key => CamelMetadataApi.hasLanguage(key))[0] || undefined;
-            if (languageName){
-                const exp:any = {};
-                exp[languageName] = element[languageName]
-                def.expression = CamelDefinitionYamlStep.readExpressionDefinition(exp);
-                delete (def as any)[languageName];
-            }
-        }
 
         return def;
     }
@@ -2466,55 +2424,6 @@ export class CamelDefinitionYamlStep {
         return def;
     }
 
-    static readTokenizerDefinition = (element: any): TokenizerDefinition => {
-        
-        let def = element ? new TokenizerDefinition({...element}) : new TokenizerDefinition();
-        if (element?.langChain4jLineTokenizer !== undefined) { 
-            if (Array.isArray(element.langChain4jLineTokenizer)) { 
-               def.langChain4jLineTokenizer = CamelDefinitionYamlStep.readLangChain4jTokenizerDefinition(element.langChain4jLineTokenizer[0]); 
-            } else { 
-               def.langChain4jLineTokenizer = CamelDefinitionYamlStep.readLangChain4jTokenizerDefinition(element.langChain4jLineTokenizer); 
-            } 
-        } 
-        if (element?.langChain4jCharacterTokenizer !== undefined) { 
-            if (Array.isArray(element.langChain4jCharacterTokenizer)) { 
-               def.langChain4jCharacterTokenizer = CamelDefinitionYamlStep.readLangChain4jCharacterTokenizerDefinition(element.langChain4jCharacterTokenizer[0]); 
-            } else { 
-               def.langChain4jCharacterTokenizer = CamelDefinitionYamlStep.readLangChain4jCharacterTokenizerDefinition(element.langChain4jCharacterTokenizer); 
-            } 
-        } 
-        if (element?.langChain4jSentenceTokenizer !== undefined) { 
-            if (Array.isArray(element.langChain4jSentenceTokenizer)) { 
-               def.langChain4jSentenceTokenizer = CamelDefinitionYamlStep.readLangChain4jSentenceTokenizerDefinition(element.langChain4jSentenceTokenizer[0]); 
-            } else { 
-               def.langChain4jSentenceTokenizer = CamelDefinitionYamlStep.readLangChain4jSentenceTokenizerDefinition(element.langChain4jSentenceTokenizer); 
-            } 
-        } 
-        if (element?.langChain4jWordTokenizer !== undefined) { 
-            if (Array.isArray(element.langChain4jWordTokenizer)) { 
-               def.langChain4jWordTokenizer = CamelDefinitionYamlStep.readLangChain4jWordTokenizerDefinition(element.langChain4jWordTokenizer[0]); 
-            } else { 
-               def.langChain4jWordTokenizer = CamelDefinitionYamlStep.readLangChain4jWordTokenizerDefinition(element.langChain4jWordTokenizer); 
-            } 
-        } 
-        if (element?.langChain4jParagraphTokenizer !== undefined) { 
-            if (Array.isArray(element.langChain4jParagraphTokenizer)) { 
-               def.langChain4jParagraphTokenizer = CamelDefinitionYamlStep.readLangChain4jParagraphTokenizerDefinition(element.langChain4jParagraphTokenizer[0]); 
-            } else { 
-               def.langChain4jParagraphTokenizer = CamelDefinitionYamlStep.readLangChain4jParagraphTokenizerDefinition(element.langChain4jParagraphTokenizer); 
-            } 
-        } 
-
-        return def;
-    }
-
-    static readTokenizerImplementationDefinition = (element: any): TokenizerImplementationDefinition => {
-        
-        let def = element ? new TokenizerImplementationDefinition({...element}) : new TokenizerImplementationDefinition();
-
-        return def;
-    }
-
     static readTransactedDefinition = (element: any): TransactedDefinition => {
         
         let def = element ? new TransactedDefinition({...element}) : new TransactedDefinition();
@@ -2651,13 +2560,6 @@ export class CamelDefinitionYamlStep {
                def.rss = CamelDefinitionYamlStep.readRssDataFormat(element.rss); 
             } 
         } 
-        if (element?.smooks !== undefined) { 
-            if (Array.isArray(element.smooks)) { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks[0]); 
-            } else { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks); 
-            } 
-        } 
         if (element?.mimeMultipart !== undefined) { 
             if (Array.isArray(element.mimeMultipart)) { 
                def.mimeMultipart = CamelDefinitionYamlStep.readMimeMultipartDataFormat(element.mimeMultipart[0]); 
@@ -2740,13 +2642,6 @@ export class CamelDefinitionYamlStep {
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson[0]); 
             } else { 
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson); 
-            } 
-        } 
-        if (element?.fury !== undefined) { 
-            if (Array.isArray(element.fury)) { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury[0]); 
-            } else { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury); 
             } 
         } 
         if (element?.custom !== undefined) { 
@@ -2893,6 +2788,25 @@ export class CamelDefinitionYamlStep {
     static readWhenDefinition = (element: any): WhenDefinition => {
         
         let def = element ? new WhenDefinition({...element}) : new WhenDefinition();
+        if (element?.expression !== undefined) { 
+            def.expression = CamelDefinitionYamlStep.readExpressionDefinition(element.expression); 
+        } else {
+            const languageName: string | undefined = Object.keys(element).filter(key => CamelMetadataApi.hasLanguage(key))[0] || undefined;
+            if (languageName){
+                const exp:any = {};
+                exp[languageName] = element[languageName]
+                def.expression = CamelDefinitionYamlStep.readExpressionDefinition(exp);
+                delete (def as any)[languageName];
+            }
+        }
+        def.steps = CamelDefinitionYamlStep.readSteps(element?.steps);
+
+        return def;
+    }
+
+    static readWhenSkipSendToEndpointDefinition = (element: any): WhenSkipSendToEndpointDefinition => {
+        
+        let def = element ? new WhenSkipSendToEndpointDefinition({...element}) : new WhenSkipSendToEndpointDefinition();
         if (element?.expression !== undefined) { 
             def.expression = CamelDefinitionYamlStep.readExpressionDefinition(element.expression); 
         } else {
@@ -3139,13 +3053,6 @@ export class CamelDefinitionYamlStep {
                def.rss = CamelDefinitionYamlStep.readRssDataFormat(element.rss); 
             } 
         } 
-        if (element?.smooks !== undefined) { 
-            if (Array.isArray(element.smooks)) { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks[0]); 
-            } else { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks); 
-            } 
-        } 
         if (element?.mimeMultipart !== undefined) { 
             if (Array.isArray(element.mimeMultipart)) { 
                def.mimeMultipart = CamelDefinitionYamlStep.readMimeMultipartDataFormat(element.mimeMultipart[0]); 
@@ -3228,13 +3135,6 @@ export class CamelDefinitionYamlStep {
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson[0]); 
             } else { 
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson); 
-            } 
-        } 
-        if (element?.fury !== undefined) { 
-            if (Array.isArray(element.fury)) { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury[0]); 
-            } else { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury); 
             } 
         } 
         if (element?.custom !== undefined) { 
@@ -3374,13 +3274,6 @@ export class CamelDefinitionYamlStep {
         return def;
     }
 
-    static readFuryDataFormat = (element: any): FuryDataFormat => {
-        
-        let def = element ? new FuryDataFormat({...element}) : new FuryDataFormat();
-
-        return def;
-    }
-
     static readGrokDataFormat = (element: any): GrokDataFormat => {
         
         let def = element ? new GrokDataFormat({...element}) : new GrokDataFormat();
@@ -3479,13 +3372,6 @@ export class CamelDefinitionYamlStep {
         return def;
     }
 
-    static readSmooksDataFormat = (element: any): SmooksDataFormat => {
-        
-        let def = element ? new SmooksDataFormat({...element}) : new SmooksDataFormat();
-
-        return def;
-    }
-
     static readSoapDataFormat = (element: any): SoapDataFormat => {
         if (element && typeof element === 'string') element = {contextPath: element};
         let def = element ? new SoapDataFormat({...element}) : new SoapDataFormat();
@@ -3577,10 +3463,7 @@ export class CamelDefinitionYamlStep {
         
         let def = element ? new YAMLDataFormat({...element}) : new YAMLDataFormat();
         def.typeFilter = element && element?.typeFilter ? element?.typeFilter.map((x:any) => CamelDefinitionYamlStep.readYAMLTypeFilterDefinition(x)) :[]; 
-        if (element.constructor !== undefined) {
-            def._constructor = element.constructor;
-            delete (def as any).constructor;
-        }
+
         return def;
     }
 
@@ -4344,44 +4227,9 @@ export class CamelDefinitionYamlStep {
         return def;
     }
 
-    static readLangChain4jCharacterTokenizerDefinition = (element: any): LangChain4jCharacterTokenizerDefinition => {
-        
-        let def = element ? new LangChain4jCharacterTokenizerDefinition({...element}) : new LangChain4jCharacterTokenizerDefinition();
-
-        return def;
-    }
-
-    static readLangChain4jLineTokenizerDefinition = (element: any): LangChain4jLineTokenizerDefinition => {
-        
-        let def = element ? new LangChain4jLineTokenizerDefinition({...element}) : new LangChain4jLineTokenizerDefinition();
-
-        return def;
-    }
-
-    static readLangChain4jParagraphTokenizerDefinition = (element: any): LangChain4jParagraphTokenizerDefinition => {
-        
-        let def = element ? new LangChain4jParagraphTokenizerDefinition({...element}) : new LangChain4jParagraphTokenizerDefinition();
-
-        return def;
-    }
-
-    static readLangChain4jSentenceTokenizerDefinition = (element: any): LangChain4jSentenceTokenizerDefinition => {
-        
-        let def = element ? new LangChain4jSentenceTokenizerDefinition({...element}) : new LangChain4jSentenceTokenizerDefinition();
-
-        return def;
-    }
-
     static readLangChain4jTokenizerDefinition = (element: any): LangChain4jTokenizerDefinition => {
         
         let def = element ? new LangChain4jTokenizerDefinition({...element}) : new LangChain4jTokenizerDefinition();
-
-        return def;
-    }
-
-    static readLangChain4jWordTokenizerDefinition = (element: any): LangChain4jWordTokenizerDefinition => {
-        
-        let def = element ? new LangChain4jWordTokenizerDefinition({...element}) : new LangChain4jWordTokenizerDefinition();
 
         return def;
     }
@@ -4487,13 +4335,6 @@ export class CamelDefinitionYamlStep {
                def.rss = CamelDefinitionYamlStep.readRssDataFormat(element.rss); 
             } 
         } 
-        if (element?.smooks !== undefined) { 
-            if (Array.isArray(element.smooks)) { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks[0]); 
-            } else { 
-               def.smooks = CamelDefinitionYamlStep.readSmooksDataFormat(element.smooks); 
-            } 
-        } 
         if (element?.mimeMultipart !== undefined) { 
             if (Array.isArray(element.mimeMultipart)) { 
                def.mimeMultipart = CamelDefinitionYamlStep.readMimeMultipartDataFormat(element.mimeMultipart[0]); 
@@ -4576,13 +4417,6 @@ export class CamelDefinitionYamlStep {
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson[0]); 
             } else { 
                def.fhirJson = CamelDefinitionYamlStep.readFhirJsonDataFormat(element.fhirJson); 
-            } 
-        } 
-        if (element?.fury !== undefined) { 
-            if (Array.isArray(element.fury)) { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury[0]); 
-            } else { 
-               def.fury = CamelDefinitionYamlStep.readFuryDataFormat(element.fury); 
             } 
         } 
         if (element?.custom !== undefined) { 
@@ -4837,6 +4671,8 @@ export class CamelDefinitionYamlStep {
             case 'loop': return CamelDefinitionYamlStep.readLoopDefinition(newBody);
             case 'marshal': return CamelDefinitionYamlStep.readMarshalDefinition(newBody);
             case 'multicast': return CamelDefinitionYamlStep.readMulticastDefinition(newBody);
+            case 'onFallback': return CamelDefinitionYamlStep.readOnFallbackDefinition(newBody);
+            case 'otherwise': return CamelDefinitionYamlStep.readOtherwiseDefinition(newBody);
             case 'pausable': return CamelDefinitionYamlStep.readPausableDefinition(newBody);
             case 'pipeline': return CamelDefinitionYamlStep.readPipelineDefinition(newBody);
             case 'policy': return CamelDefinitionYamlStep.readPolicyDefinition(newBody);
@@ -4872,13 +4708,15 @@ export class CamelDefinitionYamlStep {
             case 'throwException': return CamelDefinitionYamlStep.readThrowExceptionDefinition(newBody);
             case 'to': return CamelDefinitionYamlStep.readToDefinition(newBody);
             case 'toD': return CamelDefinitionYamlStep.readToDynamicDefinition(newBody);
-            case 'tokenizer': return CamelDefinitionYamlStep.readTokenizerDefinition(newBody);
             case 'transacted': return CamelDefinitionYamlStep.readTransactedDefinition(newBody);
             case 'transform': return CamelDefinitionYamlStep.readTransformDefinition(newBody);
             case 'doTry': return CamelDefinitionYamlStep.readTryDefinition(newBody);
             case 'unmarshal': return CamelDefinitionYamlStep.readUnmarshalDefinition(newBody);
             case 'validate': return CamelDefinitionYamlStep.readValidateDefinition(newBody);
+            case 'when': return CamelDefinitionYamlStep.readWhenDefinition(newBody);
+            case 'whenSkipSendToEndpoint': return CamelDefinitionYamlStep.readWhenSkipSendToEndpointDefinition(newBody);
             case 'wireTap': return CamelDefinitionYamlStep.readWireTapDefinition(newBody);
+            case 'langChain4j': return CamelDefinitionYamlStep.readLangChain4jTokenizerDefinition(newBody);
             default: return new CamelElement('');
         }
     }

@@ -29,8 +29,6 @@ import org.apache.camel.karavan.service.ProjectService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import java.util.Map;
-
 import static org.apache.camel.karavan.KaravanEvents.CMD_DELETE_CONTAINER;
 import static org.apache.camel.karavan.KaravanEvents.CMD_RELOAD_PROJECT_CODE;
 
@@ -54,10 +52,10 @@ public class DevModeResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{verbose}/{compile}")
-    public Response runProjectInDeveloperMode(Project project, @PathParam("verbose") boolean verbose, @PathParam("compile") boolean compile) {
+    @Path("/{jBangOptions}")
+    public Response runProjectWithJBangOptions(Project project, @PathParam("jBangOptions") String jBangOptions) {
         try {
-            String containerName = projectService.runProjectInDeveloperMode(project.getProjectId(), verbose, compile, Map.of(), Map.of());
+            String containerName = projectService.runProjectWithJBangOptions(project, jBangOptions);
             if (containerName != null) {
                 return Response.ok(containerName).build();
             } else {
@@ -72,8 +70,8 @@ public class DevModeResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response runProjectInDeveloperMode(Project project) throws Exception {
-        return runProjectInDeveloperMode(project, false, false);
+    public Response runProject(Project project) throws Exception {
+        return runProjectWithJBangOptions(project, "");
     }
 
     @GET

@@ -21,10 +21,7 @@ public class KaravanConstants {
     public static final String DEV = "dev";
     public static final String DEVMODE_IMAGE = "karavan.devmode.image";
     public static final String DEVMODE_IMAGE_PULL_POLICY = "karavan.devmode.withImagePullPolicy";
-    public static final String ENV_VAR_VERBOSE_OPTION_NAME = "VERBOSE_OPTION";
-    public static final String RUN_IN_COMPILE_MODE = "RUN_IN_COMPILE_MODE";
-    public static final String RUN_IN_BUILD_MODE = "RUN_IN_BUILD_MODE";
-    public static final String ENV_VAR_VERBOSE_OPTION_VALUE = "--verbose";
+    public static final String ENV_VAR_JBANG_OPTIONS = "JBANG_OPTIONS";
 
     public static final String LABEL_PART_OF = "app.kubernetes.io/part-of";
     public static final String LABEL_TYPE = "org.apache.camel.karavan/type";
@@ -52,6 +49,7 @@ public class KaravanConstants {
 
     public static final String PROPERTY_FORMATTER_PROJECT_ID = PROPERTY_NAME_PROJECT_ID + "=%s";
     public static final String PROPERTY_FORMATTER_PROJECT_NAME = PROPERTY_NAME_PROJECT_NAME + "=%s";
+    public static final String PROPERTY_FORMATTER_GAV = PROPERTY_NAME_GAV + "=org.camel.karavan.demo:%s:1";
 
     public enum CamelRuntime {
         CAMEL_MAIN("camel-main"),

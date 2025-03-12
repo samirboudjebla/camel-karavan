@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  TAG: 4.10.2
+  TAG: 4.8.0
 
 jobs:
   build:
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18.14.2'
 
       - name: Karavan Core install
         working-directory: ./karavan/karavan-core

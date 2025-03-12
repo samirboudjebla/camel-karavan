@@ -16,12 +16,13 @@
  */
 import React, {useEffect} from 'react';
 import {
-    Button, Flex, FlexItem, Gallery, GalleryItem, Modal,
+    Button, Drawer, DrawerContent, DrawerContentBody, DrawerPanelContent, Flex, FlexItem, Gallery, GalleryItem, Modal,
     PageSection
 } from '@patternfly/react-core';
 import './rest.css';
 import '../karavan.css';
 import {CamelElement} from "karavan-core/lib/model/IntegrationDefinition";
+import {DslProperties} from "../property/DslProperties";
 import {RestCard} from "./RestCard";
 import PlusIcon from "@patternfly/react-icons/dist/esm/icons/plus-icon";
 import {
@@ -196,44 +197,59 @@ export function RestDesigner() {
         </>)
     }
 
+
+    function getPropertiesPanel() {
+        return (
+            <DrawerPanelContent isResizable hasNoBorder defaultSize={'400px'} maxSize={'800px'} minSize={'100px'}>
+                <DslProperties designerType={'rest'}/>
+            </DrawerPanelContent>
+        )
+    }
+
     const data = integration.spec.flows?.filter(f => f.dslName === 'RestDefinition');
     const configData = integration.spec.flows?.filter(f => f.dslName === 'RestConfigurationDefinition');
     const config = configData && Array.isArray(configData) ? configData[0] : undefined;
     return (
         <PageSection className="rest-designer" isFilled padding={{default: 'noPadding'}}>
-            <Gallery className="gallery"
-                     hasGutter
-                     maxWidths={{
-                         default: '100%',
-                     }}
-            >
-                {config && getRestConfigurationCard(config)}
-                {data && getRestCards(data)}
-                <GalleryItem>
-                    <Flex direction={{default: "row"}} justifyContent={{default: "justifyContentCenter"}}>
-                        <FlexItem>
-                            <Button
-                                variant={data?.length === 0 ? "primary" : "secondary"}
-                                data-click="ADD_REST"
-                                icon={<PlusIcon/>}
-                                onClick={e => createRest()}>Create service
-                            </Button>
-                        </FlexItem>
-                        <FlexItem>
-                            {config === undefined &&
-                                <GalleryItem>
-                                    <Button
-                                        variant="secondary"
-                                        data-click="ADD_REST_REST_CONFIG"
-                                        icon={<PlusIcon/>}
-                                        onClick={e => createRestConfiguration()}>Create configuration
-                                    </Button>
-                                </GalleryItem>
-                            }
-                        </FlexItem>
-                    </Flex>
-                </GalleryItem>
-            </Gallery>
+            <Drawer isExpanded isInline>
+                <DrawerContent panelContent={getPropertiesPanel()}>
+                    <DrawerContentBody>
+                        <Gallery className="gallery"
+                                 hasGutter
+                                 maxWidths={{
+                                     default: '100%',
+                                 }}
+                        >
+                            {config && getRestConfigurationCard(config)}
+                            {data && getRestCards(data)}
+                            <GalleryItem>
+                                <Flex direction={{default: "row"}} justifyContent={{default: "justifyContentCenter"}}>
+                                    <FlexItem>
+                                        <Button
+                                            variant={data?.length === 0 ? "primary" : "secondary"}
+                                            data-click="ADD_REST"
+                                            icon={<PlusIcon/>}
+                                            onClick={e => createRest()}>Create service
+                                        </Button>
+                                    </FlexItem>
+                                    <FlexItem>
+                                        {config === undefined &&
+                                            <GalleryItem>
+                                                <Button
+                                                    variant="secondary"
+                                                    data-click="ADD_REST_REST_CONFIG"
+                                                    icon={<PlusIcon/>}
+                                                    onClick={e => createRestConfiguration()}>Create configuration
+                                                </Button>
+                                            </GalleryItem>
+                                        }
+                                    </FlexItem>
+                                </Flex>
+                            </GalleryItem>
+                        </Gallery>
+                    </DrawerContentBody>
+                </DrawerContent>
+            </Drawer>
             {getSelectorModal()}
             {getDeleteConfirmation()}
         </PageSection>

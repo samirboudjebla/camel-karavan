@@ -71,8 +71,6 @@ public class AbstractGenerator {
             className = "convertBodyTo";
         } else if (className.equals("ConvertHeaderDefinition")) {
             className = "convertHeaderTo";
-        } else if (className.equals("RouteTemplateParameterDefinition")) {
-            className = "templateParameter";
         } else if (className.equals("ConvertVariableDefinition")) {
             className = "convertVariableTo";
         } else if (className.equals("TryDefinition")) {
@@ -172,7 +170,7 @@ public class AbstractGenerator {
         String json = getMetaModel(stepName);
         if (json != null) {
             JsonObject props = new JsonObject(json).getJsonObject("properties");
-            List<String> propsLowerCase = props.getMap().keySet().stream().map(String::toLowerCase).toList();
+            List propsLowerCase = props.getMap().keySet().stream().map(String::toLowerCase).collect(Collectors.toList());
             return Comparator.comparing(e -> {
                 if (propsLowerCase.contains(e.toLowerCase())) return propsLowerCase.indexOf(e.toLowerCase());
                 else return propsLowerCase.size() + 1;

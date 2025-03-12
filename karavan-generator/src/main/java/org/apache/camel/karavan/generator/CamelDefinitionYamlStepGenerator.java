@@ -152,16 +152,10 @@ public final class CamelDefinitionYamlStepGenerator extends AbstractGenerator {
                             , aName, getAttributeClass(aValue));
                     attrs.put(aName, code);
                 }
-            } else  if ("YAMLDataFormat".equals(className) && "constructor".equals(aName)) {
-                String yamlConstructor =
-                        "        if (element.constructor !== undefined) {\n" +
-                        "            def._constructor = element.constructor;\n" +
-                        "            delete (def as any).constructor;\n" +
-                        "        }";
-                attrs.put(aName, yamlConstructor);
+            } else {
+
             }
         });
-
         return String.format(readFileText(modelTemplate), className, s1, s3, attrs.values().stream().collect(Collectors.joining("")));
     }
 
